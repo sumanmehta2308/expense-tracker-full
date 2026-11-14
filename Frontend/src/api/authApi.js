@@ -1,20 +1,31 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-export async function registerUser(userData) {
-  // Abhi frontend testing ke liye simulated response (jab backend banega tab real fetch chalega)
-  console.log(
-    "Sending signup payload to:",
-    `${API_BASE_URL}/auth/signup`,
-    userData
-  );
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: "OTP sent to your email! Redirecting to verification...",
-        email: userData.email,
-      });
-    }, 800);
+async function postRequest(endpoint, payload) {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Request failed");
+  }
+  return data;
+}
+
+export function initiateSignup(userData) {
+  return postRequest("/auth/signup", userData);
+}
+
+export function verifyUserOtp(otpData) {
+  return postRequest("/auth/verify-otp", otpData);
+}
+
+export function setUserPassword(passwordData) {
+  return postRequest("/auth/set-password", passwordData);
+}
+
+export function loginUser(credentials) {
+  return postRequest("/auth/login", credentials);
 }

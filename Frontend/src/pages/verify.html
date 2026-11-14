@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify Email | Expense Tracker</title>
+</head>
+<body class="bg-light d-flex align-items-center min-vh-100">
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+        <div class="card shadow-sm border-0 rounded-4">
+          <div class="card-body p-4 p-md-5 text-center">
+
+            <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+              <i class="bi bi-envelope-check fs-3"></i>
+            </div>
+            <h3 class="fw-bold mb-1">Verify Your Email</h3>
+            <p class="text-muted small mb-4">
+              Step 2 of 3: Enter the 6-digit code sent to <br />
+              <strong id="displayEmail" class="text-dark">your email</strong>
+            </p>
+
+            <div id="alert-box" class="alert d-none text-start small" role="alert"></div>
+
+            <form id="otp-form">
+              <div class="d-flex justify-content-center gap-2 mb-4" id="otp-inputs">
+                <input type="text" inputmode="numeric" maxlength="1" class="form-control form-control-lg text-center fw-bold otp-box" style="width: 46px; height: 52px;" required />
+                <input type="text" inputmode="numeric" maxlength="1" class="form-control form-control-lg text-center fw-bold otp-box" style="width: 46px; height: 52px;" required />
+                <input type="text" inputmode="numeric" maxlength="1" class="form-control form-control-lg text-center fw-bold otp-box" style="width: 46px; height: 52px;" required />
+                <input type="text" inputmode="numeric" maxlength="1" class="form-control form-control-lg text-center fw-bold otp-box" style="width: 46px; height: 52px;" required />
+                <input type="text" inputmode="numeric" maxlength="1" class="form-control form-control-lg text-center fw-bold otp-box" style="width: 46px; height: 52px;" required />
+                <input type="text" inputmode="numeric" maxlength="1" class="form-control form-control-lg text-center fw-bold otp-box" style="width: 46px; height: 52px;" required />
+              </div>
+
+              <button type="submit" id="verifyBtn" class="btn btn-primary w-100 py-2 fw-semibold rounded-3">
+                <span id="btnText">Verify & Continue</span>
+                <span id="btnSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+              </button>
+            </form>
+
+            <div class="mt-4 small text-muted">
+              Didn't receive the code? 
+              <button type="button" id="resendBtn" class="btn btn-link p-0 small fw-semibold text-decoration-none" disabled>
+                Resend in <span id="timer">60</span>s
+              </button>
+            </div>
+
+            <div class="mt-2">
+              <a href="/src/pages/signup.html" class="text-muted small text-decoration-none">
+                <i class="bi bi-arrow-left"></i> Change email address
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/scripts/verify.js"></script>
+</body>
+</html>
