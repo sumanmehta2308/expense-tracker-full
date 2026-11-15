@@ -438,3 +438,48 @@ body.auth-page {
   align-items: center;
   gap: 5px;
 }
+.btn-leaderboard {
+  background-color: #111827;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-leaderboard:hover {
+  background-color: #374151;
+}
+
+.rank-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.rank-1 {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+.rank-2 {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+.rank-3 {
+  background-color: #ffedd5;
+  color: #9a3412;
+}

@@ -9,7 +9,7 @@ import {
   createPremiumOrder,
   verifyPremiumTransaction,
 } from "../api/purchaseApi.js";
-
+import { fetchLeaderboard } from "../api/premiumApi.js";
 const userGreeting = document.getElementById("userGreeting");
 const logoutBtn = document.getElementById("logoutBtn");
 const expenseForm = document.getElementById("expense-form");
@@ -27,7 +27,10 @@ const totalCountEl = document.getElementById("totalCount");
 const topCategoryEl = document.getElementById("topCategory");
 const buyPremiumBtn = document.getElementById("buyPremiumBtn");
 const premiumBadge = document.getElementById("premiumBadge");
-
+const showLeaderboardBtn = document.getElementById("showLeaderboardBtn");
+const leaderboardSection = document.getElementById("leaderboardSection");
+const leaderboardTableBody = document.getElementById("leaderboard-table-body");
+const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
 let expensesList = [];
 
 function showAlert(msg, type = "danger") {
@@ -46,9 +49,12 @@ function updatePremiumUI(isPremium) {
   if (isPremium) {
     buyPremiumBtn.classList.add("d-none");
     premiumBadge.classList.remove("d-none");
+    if (showLeaderboardBtn) showLeaderboardBtn.classList.remove("d-none");
   } else {
     buyPremiumBtn.classList.remove("d-none");
     premiumBadge.classList.add("d-none");
+    if (showLeaderboardBtn) showLeaderboardBtn.classList.add("d-none");
+    if (leaderboardSection) leaderboardSection.classList.add("d-none");
   }
 }
 
@@ -162,7 +168,47 @@ async function initDashboard() {
     window.location.replace("/src/pages/login.html");
   }
 }
+async function loadAndRenderLeaderboard() {
+  try {
+    showLeaderboardBtn.disabled = true;
+    const res = await fetchLeaderboard();
+    if (res.success && leaderboardTableBody) {
+      leaderboardTableBody.innerHTML = "";
+      res.leaderboard.forEach((entry, index) => {
+        const rank = index + 1;
+        const rankClass = rank <= 3 ? `rank-${rank}` : "";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span class="rank-pill ${rankClass}">#${rank}</span></td>
+          <td class="fw-medium text-dark">${escapeHtml(entry.name)}</td>
+          <td class="text-end fw-semibold text-dark">₹${Number(
+            entry.total_expenses
+          ).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}</td>
+        `;
+        leaderboardTableBody.appendChild(tr);
+      });
+      leaderboardSection.classList.remove("d-none");
+      leaderboardSection.scrollIntoView({ behavior: "smooth" });
+    }
+  } catch (err) {
+    showAlert(err.message || "Failed to load leaderboard.", "danger");
+  } finally {
+    showLeaderboardBtn.disabled = false;
+  }
+}
 
+if (showLeaderboardBtn) {
+  showLeaderboardBtn.addEventListener("click", loadAndRenderLeaderboard);
+}
+
+if (closeLeaderboardBtn && leaderboardSection) {
+  closeLeaderboardBtn.addEventListener("click", () => {
+    leaderboardSection.classList.add("d-none");
+  });
+}
 expenseForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   alertBox.classList.add("d-none");
@@ -242,9 +288,6 @@ if (buyPremiumBtn) {
         paymentSessionId: orderRes.payment_session_id,
         redirectTarget: "_modal",
       });
-
-      // Modal बंद या पेमेंट पूरा/फेल होते ही हमेशा Backend से वेरीफाई करें
-      // ताकि Success पर SUCCESSFUL और Fail/Cancel पर PENDING -> FAILED अपडेट हो
       const verifyRes = await verifyPremiumTransaction(orderRes.order_id);
       if (verifyRes.success) {
         alert("Transaction successful");

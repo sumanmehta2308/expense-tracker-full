@@ -25,6 +25,10 @@
             <i class="bi bi-patch-check-fill"></i>
             <span>You are a Premium User</span>
           </span>
+          <button id="showLeaderboardBtn" class="btn-leaderboard d-none">
+            <i class="bi bi-trophy-fill text-warning"></i>
+            <span>Show Leaderboard</span>
+          </button>
           <span id="userGreeting" class="user-pill d-none d-sm-inline-flex">
             <i class="bi bi-person-circle"></i>
             <span>Loading...</span>
@@ -166,6 +170,32 @@
           <p class="text-muted small mb-0">
             Add your first expense using the form above to see it here.
           </p>
+        </div>
+      </div>
+      <div id="leaderboardSection" class="dashboard-card mt-4 d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="fw-bold mb-0 text-dark">
+              <i class="bi bi-trophy-fill text-warning me-2"></i>User Expense Leaderboard
+            </h5>
+            <p class="text-muted small mb-0">Ranked by highest total spending across all users</p>
+          </div>
+          <button id="closeLeaderboardBtn" type="button" class="btn btn-sm btn-outline-secondary">
+            Hide
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table expense-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th style="width: 80px;">Rank</th>
+                <th>User Name</th>
+                <th class="text-end">Total Expenses</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-table-body">
+            </tbody>
+          </table>
         </div>
       </div>
     </main>
