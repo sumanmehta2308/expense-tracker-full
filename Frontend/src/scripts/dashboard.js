@@ -11,7 +11,6 @@ import {
 } from "../api/purchaseApi.js";
 import { fetchLeaderboard } from "../api/premiumApi.js";
 import { suggestExpenseCategory, fetchAiInsights } from "../api/aiApi.js";
-
 const userGreeting = document.getElementById("userGreeting");
 const logoutBtn = document.getElementById("logoutBtn");
 const expenseForm = document.getElementById("expense-form");
@@ -27,8 +26,6 @@ const emptyState = document.getElementById("emptyState");
 const totalAmountEl = document.getElementById("totalAmount");
 const totalCountEl = document.getElementById("totalCount");
 const topCategoryEl = document.getElementById("topCategory");
-
-
 const buyPremiumBtn = document.getElementById("buyPremiumBtn");
 const premiumBadge = document.getElementById("premiumBadge");
 const showLeaderboardBtn = document.getElementById("showLeaderboardBtn");
@@ -36,13 +33,27 @@ const openReportBtn = document.getElementById("openReportBtn");
 const leaderboardSection = document.getElementById("leaderboardSection");
 const leaderboardTableBody = document.getElementById("leaderboard-table-body");
 const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
-
-// AI Controls
 const aiCategoryBadge = document.getElementById("aiCategoryBadge");
 const getAiInsightsBtn = document.getElementById("getAiInsightsBtn");
 const aiInsightsBox = document.getElementById("aiInsightsBox");
+const rowsPerPageSelect = document.getElementById("rowsPerPageSelect");
+const paginationBar = document.getElementById("paginationBar");
+const paginationInfo = document.getElementById("paginationInfo");
+const pageIndicator = document.getElementById("pageIndicator");
+const firstPageBtn = document.getElementById("firstPageBtn");
+const prevPageBtn = document.getElementById("prevPageBtn");
+const nextPageBtn = document.getElementById("nextPageBtn");
+const lastPageBtn = document.getElementById("lastPageBtn");
 
 let expensesList = [];
+let currentPage = 1;
+let itemsPerPage = Number(localStorage.getItem("expenses_per_page")) || 10;
+let totalPages = 1;
+let totalItems = 0;
+
+if (rowsPerPageSelect) {
+  rowsPerPageSelect.value = String(itemsPerPage);
+}
 
 function showAlert(msg, type = "danger") {
   alertBox.textContent = msg;
@@ -87,7 +98,20 @@ function formatDate(dateString) {
   });
 }
 
-function updateSummaryCards() {
+function updateSummaryCards(summary) {
+  if (summary) {
+    totalAmountEl.textContent = `₹${Number(summary.totalSpent).toLocaleString(
+      "en-IN",
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }
+    )}`;
+    totalCountEl.textContent = summary.totalCount;
+    topCategoryEl.textContent = summary.topCategory || "—";
+    return;
+  }
+
   const total = expensesList.reduce(
     (sum, item) => sum + Number(item.amount),
     0
@@ -121,9 +145,9 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function renderExpenses() {
+function renderExpenses(summary) {
   tableBody.innerHTML = "";
-  updateSummaryCards();
+  updateSummaryCards(summary);
 
   if (expensesList.length === 0) {
     emptyState.classList.remove("d-none");
@@ -158,6 +182,48 @@ function renderExpenses() {
   });
 }
 
+function renderPaginationControls() {
+  if (!paginationBar) return;
+
+  if (totalItems === 0) {
+    paginationBar.classList.add("d-none");
+    return;
+  }
+
+  paginationBar.classList.remove("d-none");
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  paginationInfo.textContent = `Showing ${startItem}–${endItem} of ${totalItems} expenses`;
+  pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+
+  firstPageBtn.disabled = currentPage <= 1;
+  prevPageBtn.disabled = currentPage <= 1;
+  nextPageBtn.disabled = currentPage >= totalPages;
+  lastPageBtn.disabled = currentPage >= totalPages;
+}
+
+async function loadExpensesPage(page = 1) {
+  try {
+    const expenseRes = await fetchExpenses(page, itemsPerPage);
+    if (expenseRes.success) {
+      expensesList = expenseRes.expenses;
+      currentPage = expenseRes.pagination.currentPage;
+      totalPages = expenseRes.pagination.totalPages;
+      totalItems = expenseRes.pagination.totalItems;
+
+      if (currentPage > totalPages && totalPages >= 1) {
+        return loadExpensesPage(totalPages);
+      }
+
+      renderExpenses(expenseRes.summary);
+      renderPaginationControls();
+    }
+  } catch (err) {
+    showAlert(err.message || "Failed to load expenses.");
+  }
+}
+
 async function initDashboard() {
   try {
     const authRes = await getCurrentUser();
@@ -165,9 +231,7 @@ async function initDashboard() {
       window.location.replace("/src/pages/login.html");
       return;
     }
-
     updatePremiumUI(Boolean(authRes.user.is_premium));
-
     if (userGreeting) {
       const innerSpan = userGreeting.querySelector("span");
       if (innerSpan) {
@@ -176,18 +240,36 @@ async function initDashboard() {
         userGreeting.textContent = `Hi, ${authRes.user.full_name}`;
       }
     }
-
-    const expenseRes = await fetchExpenses();
-    if (expenseRes.success) {
-      expensesList = expenseRes.expenses;
-      renderExpenses();
-    }
+    await loadExpensesPage(1);
   } catch (err) {
     console.error("Dashboard Init Error:", err);
     window.location.replace("/src/pages/login.html");
   }
 }
+if (rowsPerPageSelect) {
+  rowsPerPageSelect.addEventListener("change", () => {
+    itemsPerPage = Number(rowsPerPageSelect.value) || 10;
+    localStorage.setItem("expenses_per_page", String(itemsPerPage));
+    loadExpensesPage(1);
+  });
+}
 
+if (firstPageBtn) {
+  firstPageBtn.addEventListener("click", () => loadExpensesPage(1));
+}
+if (prevPageBtn) {
+  prevPageBtn.addEventListener("click", () =>
+    loadExpensesPage(currentPage - 1)
+  );
+}
+if (nextPageBtn) {
+  nextPageBtn.addEventListener("click", () =>
+    loadExpensesPage(currentPage + 1)
+  );
+}
+if (lastPageBtn) {
+  lastPageBtn.addEventListener("click", () => loadExpensesPage(totalPages));
+}
 
 if (openReportBtn) {
   openReportBtn.addEventListener("click", () => {
@@ -218,17 +300,7 @@ expenseForm.addEventListener("submit", async (e) => {
     const res = await createExpense({ amount, description, category });
 
     if (res.success) {
-      const addedExpense = res.expense || res.data;
-      if (addedExpense) {
-        expensesList.unshift(addedExpense);
-        renderExpenses();
-      } else {
-        const refreshed = await fetchExpenses();
-        if (refreshed.success) {
-          expensesList = refreshed.expenses;
-          renderExpenses();
-        }
-      }
+      await loadExpensesPage(1);
       expenseForm.reset();
       amountInput.focus();
     }
@@ -249,16 +321,14 @@ tableBody.addEventListener("click", async (e) => {
   try {
     const res = await removeExpense(expenseId);
     if (res.success) {
-      expensesList = expensesList.filter(
-        (item) => String(item.id) !== String(expenseId)
-      );
-      renderExpenses();
+      await loadExpensesPage(currentPage);
     }
   } catch (err) {
     showAlert(err.message);
     deleteBtn.disabled = false;
   }
 });
+
 if (buyPremiumBtn) {
   buyPremiumBtn.addEventListener("click", async () => {
     try {
@@ -270,6 +340,7 @@ if (buyPremiumBtn) {
         showAlert("Could not initiate payment.", "danger");
         return;
       }
+
       const cashfree = window.Cashfree({ mode: "sandbox" });
       await cashfree.checkout({
         paymentSessionId: orderRes.payment_session_id,
@@ -293,6 +364,7 @@ if (buyPremiumBtn) {
     }
   });
 }
+
 async function loadAndRenderLeaderboard() {
   try {
     showLeaderboardBtn.disabled = true;
@@ -334,6 +406,7 @@ if (closeLeaderboardBtn && leaderboardSection) {
     leaderboardSection.classList.add("d-none");
   });
 }
+
 let aiTypingTimer = null;
 
 function instantLocalCategory(text) {
@@ -427,6 +500,7 @@ if (descriptionInput && categoryInput) {
     if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
   });
 }
+
 if (getAiInsightsBtn && aiInsightsBox) {
   getAiInsightsBtn.addEventListener("click", async () => {
     try {
@@ -434,7 +508,6 @@ if (getAiInsightsBtn && aiInsightsBox) {
       getAiInsightsBtn.textContent = "Analyzing...";
       aiInsightsBox.textContent = "🧠 Gemini AI is reviewing your expenses...";
       aiInsightsBox.classList.remove("d-none");
-
       const res = await fetchAiInsights();
       if (res.success) {
         aiInsightsBox.textContent = res.insights;
@@ -447,7 +520,6 @@ if (getAiInsightsBtn && aiInsightsBox) {
     }
   });
 }
-
 logoutBtn.addEventListener("click", async () => {
   try {
     await logoutUser();
@@ -456,5 +528,4 @@ logoutBtn.addEventListener("click", async () => {
     window.location.replace("/src/pages/login.html");
   }
 });
-
 initDashboard();

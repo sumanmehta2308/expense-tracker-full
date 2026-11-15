@@ -48,19 +48,60 @@ export async function addExpense(req, res) {
       .json({ success: false, message: "Server error while adding expense." });
   }
 }
-export async function getExpense(req,res)
-{
-     try
-     {
-        const userId=req.user.id;
-        const [expenses]=await pool.query("select id,amount,description,category,created_at from expenses where user_id=? order by created_at desc ,id desc",[userId]);
-        return res.status(200).json({success:true,expenses});
-     }
-     catch(error)
-     {
-        console.error("get Expenses Erros:",error);
-        return res.status(500).json({success:false,message:"Server error while fecthing expense"});
-     }
+export async function getExpenses(req, res) {
+  try {
+    const userId = req.user.id;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(req.query.limit, 10) || 10)
+    );
+    const offset = (page - 1) * limit;
+
+    
+    const [expenses] = await pool.query(
+      "SELECT id, amount, description, category, created_at FROM expenses WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
+      [userId, limit, offset]
+    );
+
+    
+    const [[totals]] = await pool.query(
+      "SELECT COUNT(*) AS totalCount, COALESCE(SUM(amount), 0) AS totalSpent FROM expenses WHERE user_id = ?",
+      [userId]
+    );
+
+    const [topCatRows] = await pool.query(
+      "SELECT category, SUM(amount) AS catTotal FROM expenses WHERE user_id = ? GROUP BY category ORDER BY catTotal DESC LIMIT 1",
+      [userId]
+    );
+
+    const totalItems = Number(totals.totalCount);
+    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+    return res.status(200).json({
+      success: true,
+      expenses,
+      pagination: {
+        currentPage: page,
+        limit,
+        totalItems,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+      summary: {
+        totalSpent: Number(totals.totalSpent),
+        totalCount: totalItems,
+        topCategory: topCatRows.length > 0 ? topCatRows[0].category : "—",
+      },
+    });
+  } catch (error) {
+    console.error("Get Paginated Expenses Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch expenses.",
+    });
+  }
 }
 export async function deleteExpense(req,res)
 {

@@ -199,11 +199,25 @@
       </div>
 
       <div class="dash-card overflow-hidden">
-        <div class="dash-card-header">
-          <h2 class="dash-card-title" style="font-size: 18px;">Recent Expenses</h2>
-          <span class="text-muted" style="font-size: 14px;">Auto-saved to your account</span>
-        </div>
+        <div class="dash-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+  <div>
+    <h2 class="dash-card-title mb-0" style="font-size: 18px;">Recent Expenses</h2>
+    <span class="text-muted" style="font-size: 13.5px;">Auto-saved to your account</span>
+  </div>
 
+  
+  <div class="d-flex align-items-center gap-2">
+    <label for="rowsPerPageSelect" class="text-muted fw-semibold mb-0" style="font-size: 13.5px;">
+      Rows per page:
+    </label>
+    <select id="rowsPerPageSelect" class="form-select form-select-sm" style="width: 80px; font-size: 14px;">
+      <option value="5">5</option>
+      <option value="10" selected>10</option>
+      <option value="20">20</option>
+      <option value="40">40</option>
+    </select>
+  </div>
+</div>
         <div class="table-responsive">
           <table class="expense-table" style="font-size: 15px;">
             <thead>
@@ -218,8 +232,7 @@
             <tbody id="expense-table-body"></tbody>
           </table>
         </div>
-
-        <div id="emptyState" class="text-center py-5 d-none">
+       <div id="emptyState" class="text-center py-5 d-none">
           <div
             class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3"
             style="width: 52px; height: 52px"
@@ -233,8 +246,32 @@
             Add your first expense using the form above to see it here.
           </p>
         </div>
+        <div
+          id="paginationBar"
+          class="d-flex justify-content-between align-items-center flex-wrap gap-2 px-4 py-3 border-top bg-light d-none"
+        >
+          <div id="paginationInfo" class="text-muted fw-medium" style="font-size: 14px;">
+            Showing 0–0 of 0 expenses
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" id="firstPageBtn" class="btn btn-sm btn-outline-secondary" title="First Page">
+              « First
+            </button>
+            <button type="button" id="prevPageBtn" class="btn btn-sm btn-outline-dark fw-semibold">
+              ‹ Prev
+            </button>
+            <span id="pageIndicator" class="px-2 fw-bold text-dark" style="font-size: 14px;">
+              Page 1 of 1
+            </span>
+            <button type="button" id="nextPageBtn" class="btn btn-sm btn-outline-dark fw-semibold">
+              Next ›
+            </button>
+            <button type="button" id="lastPageBtn" class="btn btn-sm btn-outline-secondary" title="Last Page">
+              Last »
+            </button>
+          </div>
+        </div>
       </div>
-
       <div id="leaderboardSection" class="dashboard-card mt-4 p-4 bg-white rounded border shadow-sm d-none">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>

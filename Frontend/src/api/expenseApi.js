@@ -1,9 +1,10 @@
 import { apiRequest } from "./authApi.js";
 
-export function fetchExpenses() {
-  return apiRequest("/expenses", { method: "GET" });
+export function fetchExpenses(page = 1, limit = 10) {
+  return apiRequest(`/expenses?page=${page}&limit=${limit}`, {
+    method: "GET",
+  });
 }
-
 export function createExpense(expenseData) {
   return apiRequest("/expenses", {
     method: "POST",
