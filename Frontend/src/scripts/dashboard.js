@@ -10,6 +10,7 @@ import {
   verifyPremiumTransaction,
 } from "../api/purchaseApi.js";
 import { fetchLeaderboard } from "../api/premiumApi.js";
+import { suggestExpenseCategory, fetchAiInsights } from "../api/aiApi.js";
 const userGreeting = document.getElementById("userGreeting");
 const logoutBtn = document.getElementById("logoutBtn");
 const expenseForm = document.getElementById("expense-form");
@@ -31,6 +32,9 @@ const showLeaderboardBtn = document.getElementById("showLeaderboardBtn");
 const leaderboardSection = document.getElementById("leaderboardSection");
 const leaderboardTableBody = document.getElementById("leaderboard-table-body");
 const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
+const aiCategoryBadge = document.getElementById("aiCategoryBadge");
+const getAiInsightsBtn = document.getElementById("getAiInsightsBtn");
+const aiInsightsBox = document.getElementById("aiInsightsBox");
 let expensesList = [];
 
 function showAlert(msg, type = "danger") {
@@ -315,4 +319,63 @@ logoutBtn.addEventListener("click", async () => {
   }
 });
 
+let aiTypingTimer = null;
+if (descriptionInput && categoryInput) {
+  descriptionInput.addEventListener("input", () => {
+    clearTimeout(aiTypingTimer);
+    const desc = descriptionInput.value.trim();
+    if (desc.length < 3) {
+      if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
+      return;
+    }
+    aiTypingTimer = setTimeout(async () => {
+      try {
+        if (aiCategoryBadge) {
+          aiCategoryBadge.textContent = "🧠 AI thinking...";
+          aiCategoryBadge.classList.remove("d-none");
+        }
+
+        const res = await suggestExpenseCategory(desc);
+        if (res.success && res.category) {
+          const optionExists = Array.from(categoryInput.options).some(
+            (opt) => opt.value === res.category
+          );
+          if (optionExists) {
+            categoryInput.value = res.category;
+            if (aiCategoryBadge) {
+              aiCategoryBadge.textContent = `✨ AI: ${res.category}`;
+            }
+          }
+        }
+      } catch {
+        if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
+      }
+    }, 600);
+  });
+  categoryInput.addEventListener("change", () => {
+    if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
+  });
+}
+expenseForm.addEventListener("submit", () => {
+  if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
+});
+if (getAiInsightsBtn && aiInsightsBox) {
+  getAiInsightsBtn.addEventListener("click", async () => {
+    try {
+      getAiInsightsBtn.disabled = true;
+      getAiInsightsBtn.textContent = "Analyzing...";
+      aiInsightsBox.textContent = "🧠 Gemini AI is reviewing your expenses...";
+      aiInsightsBox.classList.remove("d-none");
+      const res = await fetchAiInsights();
+      if (res.success) {
+        aiInsightsBox.textContent = res.insights;
+      }
+    } catch (err) {
+      aiInsightsBox.textContent = err.message || "Unable to fetch AI insights.";
+    } finally {
+      getAiInsightsBtn.disabled = false;
+      getAiInsightsBtn.textContent = "Analyze My Spending";
+    }
+  });
+}
 initDashboard();

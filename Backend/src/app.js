@@ -5,6 +5,7 @@ import authRoutes from "./routes/authRoutes.js";
 import expenseRoutes from "./routes/expenseRoutes.js";
 import purchaseRoutes from "./routes/purchaseRoutes.js";
 import premiumRoutes from "./routes/premiumRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 const app = express();
 app.use(
   cors({
@@ -18,6 +19,7 @@ app.use("/auth", authRoutes);
 app.use("/expenses",expenseRoutes);
 app.use("/purchase", purchaseRoutes);
 app.use("/premium", premiumRoutes);
+app.use("/ai", aiRoutes);
 app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Expense Tracker Backend Running" });
 });

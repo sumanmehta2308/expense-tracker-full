@@ -83,7 +83,18 @@
           class="alert d-none small py-2 px-3 mb-3"
           role="alert"
         ></div>
-
+<div class="dashboard-card mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h6 class="fw-bold mb-0 text-dark">✨ AI Financial Advisor</h6>
+      <small class="text-muted">Get personalized spending tips powered by Gemini AI</small>
+    </div>
+    <button id="getAiInsightsBtn" type="button" class="btn btn-sm btn-outline-primary fw-semibold">
+      Analyze My Spending
+    </button>
+  </div>
+  <div id="aiInsightsBox" class="alert alert-light border mt-3 mb-0 small d-none" style="white-space: pre-line;"></div>
+</div>
         <form id="expense-form" class="row g-3 align-items-end" novalidate>
           <div class="col-12 col-md-3">
             <label for="amount" class="form-label">Amount (₹)</label>
@@ -110,7 +121,15 @@
           </div>
 
           <div class="col-12 col-md-3">
-            <label for="category" class="form-label">Category</label>
+            <label
+              for="category"
+              class="form-label d-flex justify-content-between align-items-center"
+            >
+              <span>Category</span>
+              <span id="aiCategoryBadge" class="ai-chip d-none"
+                >✨ AI Suggested</span
+              >
+            </label>
             <select class="form-select" id="category" required>
               <option value="" selected disabled>Choose category</option>
               <option value="Food">Food</option>
@@ -176,11 +195,18 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
             <h5 class="fw-bold mb-0 text-dark">
-              <i class="bi bi-trophy-fill text-warning me-2"></i>User Expense Leaderboard
+              <i class="bi bi-trophy-fill text-warning me-2"></i>User Expense
+              Leaderboard
             </h5>
-            <p class="text-muted small mb-0">Ranked by highest total spending across all users</p>
+            <p class="text-muted small mb-0">
+              Ranked by highest total spending across all users
+            </p>
           </div>
-          <button id="closeLeaderboardBtn" type="button" class="btn btn-sm btn-outline-secondary">
+          <button
+            id="closeLeaderboardBtn"
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+          >
             Hide
           </button>
         </div>
@@ -188,13 +214,12 @@
           <table class="table expense-table align-middle mb-0">
             <thead>
               <tr>
-                <th style="width: 80px;">Rank</th>
+                <th style="width: 80px">Rank</th>
                 <th>User Name</th>
                 <th class="text-end">Total Expenses</th>
               </tr>
             </thead>
-            <tbody id="leaderboard-table-body">
-            </tbody>
+            <tbody id="leaderboard-table-body"></tbody>
           </table>
         </div>
       </div>
