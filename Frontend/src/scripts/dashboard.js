@@ -44,7 +44,7 @@ const firstPageBtn = document.getElementById("firstPageBtn");
 const prevPageBtn = document.getElementById("prevPageBtn");
 const nextPageBtn = document.getElementById("nextPageBtn");
 const lastPageBtn = document.getElementById("lastPageBtn");
-
+const noteInput = document.getElementById("note");
 let expensesList = [];
 let currentPage = 1;
 let itemsPerPage = Number(localStorage.getItem("expenses_per_page")) || 10;
@@ -163,6 +163,9 @@ function renderExpenses(summary) {
     tr.innerHTML = `
       <td class="fw-medium text-dark">${escapeHtml(expense.description)}</td>
       <td><span class="cat-badge cat-${safeCategory}">${safeCategory}</span></td>
+      <td class="text-muted small">${
+        expense.note ? escapeHtml(expense.note) : "—"
+      }</td>
       <td class="text-muted small">${formatDate(expense.created_at)}</td>
       <td class="text-end fw-semibold text-dark">₹${Number(
         expense.amount
@@ -287,6 +290,7 @@ expenseForm.addEventListener("submit", async (e) => {
   const amount = amountInput.value.trim();
   const description = descriptionInput.value.trim();
   const category = categoryInput.value;
+  const note = noteInput ? noteInput.value.trim() : "";
 
   if (!amount || Number(amount) <= 0 || description.length < 2 || !category) {
     showAlert(
@@ -297,7 +301,7 @@ expenseForm.addEventListener("submit", async (e) => {
 
   try {
     setLoading(true);
-    const res = await createExpense({ amount, description, category });
+    const res = await createExpense({ amount, description, category, note });
 
     if (res.success) {
       await loadExpensesPage(1);
@@ -310,7 +314,6 @@ expenseForm.addEventListener("submit", async (e) => {
     setLoading(false);
   }
 });
-
 tableBody.addEventListener("click", async (e) => {
   const deleteBtn = e.target.closest(".delete-btn");
   if (!deleteBtn) return;

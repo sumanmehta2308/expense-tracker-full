@@ -27,12 +27,12 @@ export async function addExpense(req, res) {
     }
 
     const [result] = await pool.query(
-      "INSERT INTO expenses (user_id, amount, description, category) VALUES (?, ?, ?, ?)",
+      "INSERT INTO expenses (user_id, amount, description, category,notes) VALUES (?, ?, ?, ?)",
       [userId, Number(amount).toFixed(2), description.trim(), category.trim()]
     );
 
     const [rows] = await pool.query(
-      "SELECT id, amount, description, category, created_at FROM expenses WHERE id = ?",
+      "SELECT id, amount, description, category,note, created_at FROM expenses WHERE id = ?",
       [result.insertId]
     );
 
@@ -60,7 +60,7 @@ export async function getExpenses(req, res) {
 
     
     const [expenses] = await pool.query(
-      "SELECT id, amount, description, category, created_at FROM expenses WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
+      "SELECT id, amount, description, category,note created_at FROM expenses WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
       [userId, limit, offset]
     );
 
