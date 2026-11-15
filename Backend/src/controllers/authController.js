@@ -323,10 +323,23 @@ export async function refreshAccessToken(req, res) {
   }
 }
 export async function getCurrentUser(req, res) {
-  return res.status(200).json({
-    success: true,
-    user: req.user,
-  });
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, full_name, email, is_premium FROM users WHERE id = ?",
+      [req.user.id]
+    );
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({
+      success: true,
+      user: rows[0],
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
 }
 export async function logoutUser(req, res) {
   try {

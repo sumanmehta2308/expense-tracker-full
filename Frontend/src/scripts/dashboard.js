@@ -5,6 +5,10 @@ import {
   createExpense,
   removeExpense,
 } from "../api/expenseApi.js";
+import {
+  createPremiumOrder,
+  verifyPremiumTransaction,
+} from "../api/purchaseApi.js";
 
 const userGreeting = document.getElementById("userGreeting");
 const logoutBtn = document.getElementById("logoutBtn");
@@ -21,6 +25,8 @@ const emptyState = document.getElementById("emptyState");
 const totalAmountEl = document.getElementById("totalAmount");
 const totalCountEl = document.getElementById("totalCount");
 const topCategoryEl = document.getElementById("topCategory");
+const buyPremiumBtn = document.getElementById("buyPremiumBtn");
+const premiumBadge = document.getElementById("premiumBadge");
 
 let expensesList = [];
 
@@ -33,6 +39,17 @@ function setLoading(loading) {
   addBtn.disabled = loading;
   btnText.textContent = loading ? "Adding" : "Add";
   btnSpinner.classList.toggle("d-none", !loading);
+}
+
+function updatePremiumUI(isPremium) {
+  if (!buyPremiumBtn || !premiumBadge) return;
+  if (isPremium) {
+    buyPremiumBtn.classList.add("d-none");
+    premiumBadge.classList.remove("d-none");
+  } else {
+    buyPremiumBtn.classList.remove("d-none");
+    premiumBadge.classList.add("d-none");
+  }
 }
 
 function formatDate(dateString) {
@@ -124,6 +141,8 @@ async function initDashboard() {
       return;
     }
 
+    updatePremiumUI(Boolean(authRes.user.is_premium));
+
     if (userGreeting) {
       const innerSpan = userGreeting.querySelector("span");
       if (innerSpan) {
@@ -205,6 +224,44 @@ tableBody.addEventListener("click", async (e) => {
     deleteBtn.disabled = false;
   }
 });
+
+if (buyPremiumBtn) {
+  buyPremiumBtn.addEventListener("click", async () => {
+    try {
+      buyPremiumBtn.disabled = true;
+      alertBox.classList.add("d-none");
+
+      const orderRes = await createPremiumOrder();
+      if (!orderRes.success) {
+        showAlert("Could not initiate payment.", "danger");
+        return;
+      }
+
+      const cashfree = window.Cashfree({ mode: "sandbox" });
+      await cashfree.checkout({
+        paymentSessionId: orderRes.payment_session_id,
+        redirectTarget: "_modal",
+      });
+
+      // Modal बंद या पेमेंट पूरा/फेल होते ही हमेशा Backend से वेरीफाई करें
+      // ताकि Success पर SUCCESSFUL और Fail/Cancel पर PENDING -> FAILED अपडेट हो
+      const verifyRes = await verifyPremiumTransaction(orderRes.order_id);
+      if (verifyRes.success) {
+        alert("Transaction successful");
+        showAlert(
+          "Transaction successful! You are now a Premium User.",
+          "success"
+        );
+        updatePremiumUI(true);
+      }
+    } catch (err) {
+      alert("TRANSACTION FAILED");
+      showAlert(err.message || "TRANSACTION FAILED", "danger");
+    } finally {
+      buyPremiumBtn.disabled = false;
+    }
+  });
+}
 
 logoutBtn.addEventListener("click", async () => {
   try {
