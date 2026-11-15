@@ -29,3 +29,28 @@ export async function sendOtpEmail(toEmail, fullName, otp) {
   };
   await transporter.sendMail(mailOptions);
 }
+export async function sendResetPasswordEmail(toEmail, userName, resetUrl) {
+  const mailOptions = {
+    from: `"Expense Tracker Support" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: "Reset Your Expense Tracker Password",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 520px; margin: auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 10px;">
+        <h2 style="color: #111827; margin-bottom: 8px;">Password Reset Request</h2>
+        <p style="color: #4b5563;">Hi <strong>${
+          userName || "User"
+        }</strong>,</p>
+        <p style="color: #4b5563;">We received a request to reset your password. Click the button below to set a new password (valid for one-time use):</p>
+        <div style="margin: 24px 0;">
+          <a href="${resetUrl}" style="background-color: #111827; color: #ffffff; padding: 12px 22px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
+            Reset Password
+          </a>
+        </div>
+        <p style="color: #6b7280; font-size: 13px;">Or copy and paste this link in your browser:<br/><a href="${resetUrl}">${resetUrl}</a></p>
+        <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">If you didn't request this, you can safely ignore this email.</p>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+}

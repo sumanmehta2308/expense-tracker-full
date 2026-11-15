@@ -320,6 +320,61 @@ logoutBtn.addEventListener("click", async () => {
 });
 
 let aiTypingTimer = null;
+
+function instantLocalCategory(text) {
+  const t = text.toLowerCase();
+  if (
+    /\b(food|lunch|dinner|breakfast|domino|pizza|burger|swiggy|zomato|tea|coffee|chai|grocery|milk|snack|restaurant|cafe|biryani)\b/.test(
+      t
+    )
+  )
+    return "Food";
+  if (
+    /\b(petrol|diesel|fuel|pump|cng|indian oil|hp|bharat petroleum)\b/.test(t)
+  )
+    return "Fuel";
+  if (
+    /\b(amazon|flipkart|myntra|shirt|shoes|mall|clothes|shopping|jeans|watch)\b/.test(
+      t
+    )
+  )
+    return "Shopping";
+  if (
+    /\b(electricity|water|wifi|internet|recharge|bill|rent|gas|broadband|jio|airtel)\b/.test(
+      t
+    )
+  )
+    return "Bills";
+  if (/\b(movie|netflix|pvr|inox|game|concert|spotify|prime|hotstar)\b/.test(t))
+    return "Entertainment";
+  if (
+    /\b(uber|ola|rapido|flight|train|irctc|bus|metro|hotel|trip|cab|auto)\b/.test(
+      t
+    )
+  )
+    return "Travel";
+  if (
+    /\b(doctor|medicine|hospital|pharmacy|gym|medical|clinic|health|test)\b/.test(
+      t
+    )
+  )
+    return "Health";
+  return null;
+}
+
+function applyCategoryOption(cat, labelText) {
+  const optionExists = Array.from(categoryInput.options).some(
+    (opt) => opt.value === cat
+  );
+  if (optionExists) {
+    categoryInput.value = cat;
+    if (aiCategoryBadge) {
+      aiCategoryBadge.textContent = labelText;
+      aiCategoryBadge.classList.remove("d-none");
+    }
+  }
+}
+
 if (descriptionInput && categoryInput) {
   descriptionInput.addEventListener("input", () => {
     clearTimeout(aiTypingTimer);
@@ -328,54 +383,30 @@ if (descriptionInput && categoryInput) {
       if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
       return;
     }
+    const instantMatch = instantLocalCategory(desc);
+    if (instantMatch) {
+      applyCategoryOption(instantMatch, `⚡ AI: ${instantMatch}`);
+      return;
+    }
     aiTypingTimer = setTimeout(async () => {
       try {
         if (aiCategoryBadge) {
-          aiCategoryBadge.textContent = "🧠 AI thinking...";
+          aiCategoryBadge.textContent = "🧠 AI...";
           aiCategoryBadge.classList.remove("d-none");
         }
 
         const res = await suggestExpenseCategory(desc);
         if (res.success && res.category) {
-          const optionExists = Array.from(categoryInput.options).some(
-            (opt) => opt.value === res.category
-          );
-          if (optionExists) {
-            categoryInput.value = res.category;
-            if (aiCategoryBadge) {
-              aiCategoryBadge.textContent = `✨ AI: ${res.category}`;
-            }
-          }
+          applyCategoryOption(res.category, `✨ AI: ${res.category}`);
         }
       } catch {
         if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
       }
-    }, 600);
+    }, 200);
   });
+
   categoryInput.addEventListener("change", () => {
     if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
-  });
-}
-expenseForm.addEventListener("submit", () => {
-  if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
-});
-if (getAiInsightsBtn && aiInsightsBox) {
-  getAiInsightsBtn.addEventListener("click", async () => {
-    try {
-      getAiInsightsBtn.disabled = true;
-      getAiInsightsBtn.textContent = "Analyzing...";
-      aiInsightsBox.textContent = "🧠 Gemini AI is reviewing your expenses...";
-      aiInsightsBox.classList.remove("d-none");
-      const res = await fetchAiInsights();
-      if (res.success) {
-        aiInsightsBox.textContent = res.insights;
-      }
-    } catch (err) {
-      aiInsightsBox.textContent = err.message || "Unable to fetch AI insights.";
-    } finally {
-      getAiInsightsBtn.disabled = false;
-      getAiInsightsBtn.textContent = "Analyze My Spending";
-    }
   });
 }
 initDashboard();

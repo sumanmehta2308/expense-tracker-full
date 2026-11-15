@@ -64,3 +64,9 @@ export function getCurrentUser() {
 export function logoutUser() {
   return apiRequest("/auth/logout", { method: "POST" });
 }
+export function requestForgotPassword(email) {
+  return apiRequest("/password/forgotpassword", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}

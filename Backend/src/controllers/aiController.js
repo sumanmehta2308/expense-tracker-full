@@ -2,8 +2,6 @@ import { GoogleGenAI } from "@google/genai";
 import pool from "../config/db.js";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-// तुम्हारे dropdown में मौजूद exact categories
 const ALLOWED_CATEGORIES = [
   "Food",
   "Fuel",
@@ -59,10 +57,17 @@ export async function suggestCategory(req, res) {
 Expense description: "${description.trim()}"
 Reply with ONLY the single category word, nothing else.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+   const response = await ai.models.generateContent({
+     model: "gemini-2.5-flash",
+     contents: `Classify expense into ONE word from [${ALLOWED_CATEGORIES.join(
+       ", "
+     )}]: "${description.trim()}"`,
+     config: {
+       thinkingConfig: { thinkingBudget: 0 },
+       maxOutputTokens: 10,
+       temperature: 0,
+     },
+   });
 
     const rawText = (response.text || "").trim().replace(/[^a-zA-Z]/g, "");
     const matchedCategory =
