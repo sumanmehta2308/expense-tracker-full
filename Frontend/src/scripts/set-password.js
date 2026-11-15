@@ -66,16 +66,12 @@ passwordForm.addEventListener("submit", async (e) => {
     setLoading(true);
     const res = await setUserPassword({ email: signupEmail, password });
 
-    if (res.success) {
-      showAlert(res.message, "success");
-      sessionStorage.removeItem("signupEmail");
-      sessionStorage.removeItem("signupFullName");
-      sessionStorage.removeItem("otpVerified");
-
-      setTimeout(() => {
-        window.location.href = "login.html";
-      }, 1500);
-    }
+   if (res.success) {
+     sessionStorage.removeItem("signupEmail");
+     sessionStorage.removeItem("signupFullName");
+     sessionStorage.removeItem("otpVerified");
+     window.location.href = "/src/pages/login.html";
+   }
   } catch (err) {
     showAlert(err.message);
   } finally {

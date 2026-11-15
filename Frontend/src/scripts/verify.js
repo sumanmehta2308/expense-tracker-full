@@ -116,13 +116,10 @@ otpForm.addEventListener("submit", async (e) => {
     setLoading(true);
     const res = await verifyUserOtp({ email: signupEmail, otp: otpValue });
 
-    if (res.success) {
-      showAlert(res.message, "success");
-      sessionStorage.setItem("otpVerified", "true");
-      setTimeout(() => {
-        window.location.href = "set-password.html";
-      }, 1000);
-    }
+   if (res.success) {
+     sessionStorage.setItem("otpVerified", "true");
+     window.location.href = "/src/pages/set-password.html";
+   }
   } catch (err) {
     showAlert(err.message);
     otpInputs.forEach((inp) => (inp.value = ""));

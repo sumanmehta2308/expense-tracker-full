@@ -7,7 +7,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 export async function sendOtpEmail(toEmail, fullName, otp) {
-  // Terminal mein bhi print karenge taaki development mein aasani ho
   console.log(`\n[OTP SERVICE] Email: ${toEmail} | OTP: ${otp}\n`);
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     return;

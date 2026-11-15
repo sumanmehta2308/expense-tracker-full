@@ -1,8 +1,9 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
+import expenseRoutes from "./routes/expenseRoutes.js";
 const app = express();
-
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -10,11 +11,10 @@ app.use(
   })
 );
 app.use(express.json());
-
-// Routes
-app.use("/api/auth", authRoutes);
-
-app.get("/api/health", (req, res) => {
+app.use(cookieParser());
+app.use("/auth", authRoutes);
+app.use("/expenses",expenseRoutes);
+app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Expense Tracker Backend Running" });
 });
 

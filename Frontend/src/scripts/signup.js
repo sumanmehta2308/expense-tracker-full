@@ -48,15 +48,14 @@ signupForm.addEventListener("submit", async (e) => {
       email: email.trim(),
     });
 
-    if (res.success) {
-      showAlert(res.message, "success");
-      sessionStorage.setItem("signupFullName", fullName.trim());
-      sessionStorage.setItem("signupEmail", res.email);
-
-      setTimeout(() => {
-        window.location.href = "verify.html";
-      }, 1000);
-    }
+   if (res.success) {
+     sessionStorage.setItem("signupFullName", fullName.trim());
+     sessionStorage.setItem(
+       "signupEmail",
+       res.email || email.trim().toLowerCase()
+     );
+     window.location.href = "/src/pages/verify.html";
+   }
   } catch (err) {
     showAlert(err.message);
   } finally {

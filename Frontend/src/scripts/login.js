@@ -47,16 +47,12 @@ loginForm.addEventListener("submit", async (e) => {
   try {
     setLoading(true);
     const res = await loginUser({ email: email.trim(), password });
-
-    if (res.success) {
-      showAlert(res.message, "success");
-      localStorage.setItem("authToken", res.token);
-      localStorage.setItem("user", JSON.stringify(res.user));
-
-      setTimeout(() => {
-        window.location.href = "dashboard.html";
-      }, 1000);
-    }
+if (res.success) {
+  sessionStorage.removeItem("signupEmail");
+  sessionStorage.removeItem("signupFullName");
+  sessionStorage.removeItem("otpVerified");
+  window.location.href = "/src/pages/dashboard.html";
+}
   } catch (err) {
     showAlert(err.message);
   } finally {
