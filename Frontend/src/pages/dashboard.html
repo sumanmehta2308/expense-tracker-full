@@ -6,103 +6,139 @@
     <title>Dashboard — Expense Tracker</title>
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
   </head>
-  <body>
-    <header class="dash-navbar">
+  <body style="font-size: 15.5px;">
+    <header class="dash-navbar py-3">
       <div
-        class="dash-container d-flex align-items-center justify-content-between"
+        class="dash-container d-flex align-items-center justify-content-between flex-wrap gap-3"
       >
         <div class="d-flex align-items-center gap-2">
           <div class="brand-logo"><i class="bi bi-wallet2"></i></div>
-          <span class="brand-name">Expense Tracker</span>
+          <span class="brand-name" style="font-size: 19px;">Expense Tracker</span>
         </div>
 
-        <div class="d-flex align-items-center gap-3">
-          <button id="buyPremiumBtn" class="btn-premium">
+        <div class="d-flex align-items-center flex-wrap gap-2 gap-sm-3">
+          <button id="buyPremiumBtn" class="btn-premium" style="font-size: 14px; padding: 8px 16px;">
             <i class="bi bi-star-fill"></i>
             <span>Buy Premium Membership</span>
           </button>
-          <span id="premiumBadge" class="premium-badge d-none">
+
+          <span id="premiumBadge" class="premium-badge d-none" style="font-size: 13.5px; padding: 6px 14px;">
             <i class="bi bi-patch-check-fill"></i>
-            <span>You are a Premium User</span>
+            <span>You are a premium user now</span>
           </span>
-          <button id="showLeaderboardBtn" class="btn-leaderboard d-none">
+
+          <button id="showLeaderboardBtn" class="btn-leaderboard d-none" style="font-size: 14px; padding: 8px 16px;">
             <i class="bi bi-trophy-fill text-warning"></i>
             <span>Show Leaderboard</span>
           </button>
-          <span id="userGreeting" class="user-pill d-none d-sm-inline-flex">
+
+          <!-- सिर्फ़ यही बटन दिखेगा Dashboard में; क्लिक करने पर नए टैब में पूरा डेटा और Download बटन खुलेगा -->
+          <button
+            id="openReportBtn"
+            class="btn-download-report"
+            style="font-size: 14px; padding: 8px 16px;"
+            disabled
+            title="Premium Feature: View & Download Day to Day Expenses"
+          >
+            <i class="bi bi-journal-text"></i>
+            <span>Day to Day Expenses</span>
+          </button>
+
+          <span id="userGreeting" class="user-pill d-none d-md-inline-flex" style="font-size: 14px;">
             <i class="bi bi-person-circle"></i>
             <span>Loading...</span>
           </span>
-          <button id="logoutBtn" class="btn-logout">
+
+          <button id="logoutBtn" class="btn-logout" style="font-size: 14px; padding: 8px 14px;">
             <i class="bi bi-box-arrow-right"></i>
             <span>Sign out</span>
           </button>
         </div>
       </div>
     </header>
+
     <main class="dash-container py-4 py-md-5">
       <div class="mb-4">
-        <h1 class="h4 fw-bold mb-1" style="letter-spacing: -0.02em">
+        <h1 class="h3 fw-bold mb-1" style="letter-spacing: -0.02em;">
           Overview
         </h1>
-        <p class="text-muted small mb-0">
+        <p class="text-muted mb-0" style="font-size: 15px;">
           Track your daily expenses and manage your spending habits
         </p>
       </div>
+
       <div class="stat-grid">
         <div class="stat-card">
-          <div class="stat-label">
+          <div class="stat-label" style="font-size: 14px;">
             <span>Total Spent</span>
             <i class="bi bi-currency-rupee text-primary"></i>
           </div>
-          <div id="totalAmount" class="stat-value">₹0.00</div>
+          <div id="totalAmount" class="stat-value" style="font-size: 28px;">₹0.00</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-label">
+          <div class="stat-label" style="font-size: 14px;">
             <span>Total Transactions</span>
             <i class="bi bi-receipt text-muted"></i>
           </div>
-          <div id="totalCount" class="stat-value">0</div>
+          <div id="totalCount" class="stat-value" style="font-size: 28px;">0</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-label">
+          <div class="stat-label" style="font-size: 14px;">
             <span>Top Category</span>
             <i class="bi bi-pie-chart text-muted"></i>
           </div>
-          <div id="topCategory" class="stat-value" style="font-size: 20px">
+          <div id="topCategory" class="stat-value" style="font-size: 24px;">
             —
           </div>
         </div>
       </div>
+
       <div class="dash-card p-4 mb-4">
-        <h2 class="dash-card-title mb-3">Add New Expense</h2>
+        <h2 class="dash-card-title mb-3" style="font-size: 18px;">Add New Expense</h2>
         <div
           id="alert-box"
-          class="alert d-none small py-2 px-3 mb-3"
+          class="alert d-none py-2 px-3 mb-3"
+          style="font-size: 14.5px;"
           role="alert"
         ></div>
-<div class="dashboard-card mb-4">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <div>
-      <h6 class="fw-bold mb-0 text-dark">✨ AI Financial Advisor</h6>
-      <small class="text-muted">Get personalized spending tips powered by Gemini AI</small>
-    </div>
-    <button id="getAiInsightsBtn" type="button" class="btn btn-sm btn-outline-primary fw-semibold">
-      Analyze My Spending
-    </button>
-  </div>
-  <div id="aiInsightsBox" class="alert alert-light border mt-3 mb-0 small d-none" style="white-space: pre-line;"></div>
-</div>
+
+        <div class="dashboard-card mb-4 p-3 rounded border bg-light">
+          <div
+            class="d-flex justify-content-between align-items-center flex-wrap gap-2"
+          >
+            <div>
+              <h6 class="fw-bold mb-1 text-dark" style="font-size: 15.5px;">✨ AI Financial Advisor</h6>
+              <span class="text-muted" style="font-size: 14px;"
+                >Get personalized spending tips powered by Gemini AI</span
+              >
+            </div>
+            <button
+              id="getAiInsightsBtn"
+              type="button"
+              class="btn btn-outline-primary fw-semibold"
+              style="font-size: 14px;"
+            >
+              Analyze My Spending
+            </button>
+          </div>
+          <div
+            id="aiInsightsBox"
+            class="alert alert-white bg-white border mt-3 mb-0 d-none"
+            style="white-space: pre-line; font-size: 14.5px; line-height: 1.6;"
+          ></div>
+        </div>
+
         <form id="expense-form" class="row g-3 align-items-end" novalidate>
           <div class="col-12 col-md-3">
-            <label for="amount" class="form-label">Amount (₹)</label>
+            <label for="amount" class="form-label fw-semibold" style="font-size: 14.5px;">Amount (₹)</label>
             <input
               type="number"
               step="0.01"
               min="1"
-              class="form-control"
+              class="form-control form-control-lg"
+              style="font-size: 15.5px;"
               id="amount"
               placeholder="e.g. 250"
               required
@@ -110,10 +146,11 @@
           </div>
 
           <div class="col-12 col-md-4">
-            <label for="description" class="form-label">Description</label>
+            <label for="description" class="form-label fw-semibold" style="font-size: 14.5px;">Description</label>
             <input
               type="text"
-              class="form-control"
+              class="form-control form-control-lg"
+              style="font-size: 15.5px;"
               id="description"
               placeholder="e.g. Lunch, Petrol, Groceries"
               required
@@ -123,28 +160,32 @@
           <div class="col-12 col-md-3">
             <label
               for="category"
-              class="form-label d-flex justify-content-between align-items-center"
+              class="form-label fw-semibold d-flex justify-content-between align-items-center"
+              style="font-size: 14.5px;"
             >
               <span>Category</span>
               <span id="aiCategoryBadge" class="ai-chip d-none"
                 >✨ AI Suggested</span
               >
             </label>
-            <select class="form-select" id="category" required>
+            <select class="form-select form-select-lg" style="font-size: 15.5px;" id="category" required>
               <option value="" selected disabled>Choose category</option>
               <option value="Food">Food</option>
+              <option value="Fuel">Fuel</option>
               <option value="Petrol">Petrol</option>
               <option value="Rent">Rent</option>
               <option value="Shopping">Shopping</option>
               <option value="Bills">Bills</option>
               <option value="Entertainment">Entertainment</option>
+              <option value="Travel">Travel</option>
+              <option value="Health">Health</option>
               <option value="Salary">Salary</option>
               <option value="Other">Other</option>
             </select>
           </div>
 
           <div class="col-12 col-md-2">
-            <button type="submit" id="addBtn" class="btn-auth">
+            <button type="submit" id="addBtn" class="btn-auth" style="height: 44px; font-size: 15.5px;">
               <i class="bi bi-plus-lg"></i>
               <span id="btnText">Add</span>
               <span
@@ -156,14 +197,15 @@
           </div>
         </form>
       </div>
+
       <div class="dash-card overflow-hidden">
         <div class="dash-card-header">
-          <h2 class="dash-card-title">Recent Expenses</h2>
-          <span class="text-muted small">Auto-saved to your account</span>
+          <h2 class="dash-card-title" style="font-size: 18px;">Recent Expenses</h2>
+          <span class="text-muted" style="font-size: 14px;">Auto-saved to your account</span>
         </div>
 
         <div class="table-responsive">
-          <table class="expense-table">
+          <table class="expense-table" style="font-size: 15px;">
             <thead>
               <tr>
                 <th>Description</th>
@@ -176,45 +218,48 @@
             <tbody id="expense-table-body"></tbody>
           </table>
         </div>
+
         <div id="emptyState" class="text-center py-5 d-none">
           <div
             class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3"
-            style="width: 48px; height: 48px"
+            style="width: 52px; height: 52px"
           >
-            <i class="bi bi-inbox text-muted fs-5"></i>
+            <i class="bi bi-inbox text-muted fs-4"></i>
           </div>
-          <p class="fw-medium text-dark mb-1" style="font-size: 14px">
+          <p class="fw-semibold text-dark mb-1" style="font-size: 16px">
             No expenses yet
           </p>
-          <p class="text-muted small mb-0">
+          <p class="text-muted mb-0" style="font-size: 14.5px;">
             Add your first expense using the form above to see it here.
           </p>
         </div>
       </div>
-      <div id="leaderboardSection" class="dashboard-card mt-4 d-none">
+
+      <div id="leaderboardSection" class="dashboard-card mt-4 p-4 bg-white rounded border shadow-sm d-none">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <h5 class="fw-bold mb-0 text-dark">
+            <h5 class="fw-bold mb-1 text-dark" style="font-size: 18px;">
               <i class="bi bi-trophy-fill text-warning me-2"></i>User Expense
               Leaderboard
             </h5>
-            <p class="text-muted small mb-0">
+            <p class="text-muted mb-0" style="font-size: 14px;">
               Ranked by highest total spending across all users
             </p>
           </div>
           <button
             id="closeLeaderboardBtn"
             type="button"
-            class="btn btn-sm btn-outline-secondary"
+            class="btn btn-outline-secondary"
+            style="font-size: 14px;"
           >
             Hide
           </button>
         </div>
         <div class="table-responsive">
-          <table class="table expense-table align-middle mb-0">
+          <table class="table expense-table align-middle mb-0" style="font-size: 15px;">
             <thead>
               <tr>
-                <th style="width: 80px">Rank</th>
+                <th style="width: 90px">Rank</th>
                 <th>User Name</th>
                 <th class="text-end">Total Expenses</th>
               </tr>
@@ -224,7 +269,6 @@
         </div>
       </div>
     </main>
-
     <script type="module" src="/src/scripts/dashboard.js"></script>
   </body>
 </html>

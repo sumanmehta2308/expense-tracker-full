@@ -11,6 +11,7 @@ import {
 } from "../api/purchaseApi.js";
 import { fetchLeaderboard } from "../api/premiumApi.js";
 import { suggestExpenseCategory, fetchAiInsights } from "../api/aiApi.js";
+
 const userGreeting = document.getElementById("userGreeting");
 const logoutBtn = document.getElementById("logoutBtn");
 const expenseForm = document.getElementById("expense-form");
@@ -26,15 +27,21 @@ const emptyState = document.getElementById("emptyState");
 const totalAmountEl = document.getElementById("totalAmount");
 const totalCountEl = document.getElementById("totalCount");
 const topCategoryEl = document.getElementById("topCategory");
+
+
 const buyPremiumBtn = document.getElementById("buyPremiumBtn");
 const premiumBadge = document.getElementById("premiumBadge");
 const showLeaderboardBtn = document.getElementById("showLeaderboardBtn");
+const openReportBtn = document.getElementById("openReportBtn");
 const leaderboardSection = document.getElementById("leaderboardSection");
 const leaderboardTableBody = document.getElementById("leaderboard-table-body");
 const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
+
+// AI Controls
 const aiCategoryBadge = document.getElementById("aiCategoryBadge");
 const getAiInsightsBtn = document.getElementById("getAiInsightsBtn");
 const aiInsightsBox = document.getElementById("aiInsightsBox");
+
 let expensesList = [];
 
 function showAlert(msg, type = "danger") {
@@ -54,11 +61,19 @@ function updatePremiumUI(isPremium) {
     buyPremiumBtn.classList.add("d-none");
     premiumBadge.classList.remove("d-none");
     if (showLeaderboardBtn) showLeaderboardBtn.classList.remove("d-none");
+    if (openReportBtn) {
+      openReportBtn.disabled = false;
+      openReportBtn.title = "Open Day to Day Expenses Report";
+    }
   } else {
     buyPremiumBtn.classList.remove("d-none");
     premiumBadge.classList.add("d-none");
     if (showLeaderboardBtn) showLeaderboardBtn.classList.add("d-none");
     if (leaderboardSection) leaderboardSection.classList.add("d-none");
+    if (openReportBtn) {
+      openReportBtn.disabled = true;
+      openReportBtn.title = "Available for Premium Users only";
+    }
   }
 }
 
@@ -172,50 +187,20 @@ async function initDashboard() {
     window.location.replace("/src/pages/login.html");
   }
 }
-async function loadAndRenderLeaderboard() {
-  try {
-    showLeaderboardBtn.disabled = true;
-    const res = await fetchLeaderboard();
-    if (res.success && leaderboardTableBody) {
-      leaderboardTableBody.innerHTML = "";
-      res.leaderboard.forEach((entry, index) => {
-        const rank = index + 1;
-        const rankClass = rank <= 3 ? `rank-${rank}` : "";
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><span class="rank-pill ${rankClass}">#${rank}</span></td>
-          <td class="fw-medium text-dark">${escapeHtml(entry.name)}</td>
-          <td class="text-end fw-semibold text-dark">₹${Number(
-            entry.total_expenses
-          ).toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}</td>
-        `;
-        leaderboardTableBody.appendChild(tr);
-      });
-      leaderboardSection.classList.remove("d-none");
-      leaderboardSection.scrollIntoView({ behavior: "smooth" });
+
+
+if (openReportBtn) {
+  openReportBtn.addEventListener("click", () => {
+    if (!openReportBtn.disabled) {
+      window.open("/src/pages/report.html", "_blank");
     }
-  } catch (err) {
-    showAlert(err.message || "Failed to load leaderboard.", "danger");
-  } finally {
-    showLeaderboardBtn.disabled = false;
-  }
-}
-
-if (showLeaderboardBtn) {
-  showLeaderboardBtn.addEventListener("click", loadAndRenderLeaderboard);
-}
-
-if (closeLeaderboardBtn && leaderboardSection) {
-  closeLeaderboardBtn.addEventListener("click", () => {
-    leaderboardSection.classList.add("d-none");
   });
 }
+
 expenseForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   alertBox.classList.add("d-none");
+  if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
 
   const amount = amountInput.value.trim();
   const description = descriptionInput.value.trim();
@@ -274,7 +259,6 @@ tableBody.addEventListener("click", async (e) => {
     deleteBtn.disabled = false;
   }
 });
-
 if (buyPremiumBtn) {
   buyPremiumBtn.addEventListener("click", async () => {
     try {
@@ -286,12 +270,12 @@ if (buyPremiumBtn) {
         showAlert("Could not initiate payment.", "danger");
         return;
       }
-
       const cashfree = window.Cashfree({ mode: "sandbox" });
       await cashfree.checkout({
         paymentSessionId: orderRes.payment_session_id,
         redirectTarget: "_modal",
       });
+
       const verifyRes = await verifyPremiumTransaction(orderRes.order_id);
       if (verifyRes.success) {
         alert("Transaction successful");
@@ -309,16 +293,47 @@ if (buyPremiumBtn) {
     }
   });
 }
-
-logoutBtn.addEventListener("click", async () => {
+async function loadAndRenderLeaderboard() {
   try {
-    await logoutUser();
+    showLeaderboardBtn.disabled = true;
+    const res = await fetchLeaderboard();
+    if (res.success && leaderboardTableBody) {
+      leaderboardTableBody.innerHTML = "";
+      res.leaderboard.forEach((entry, index) => {
+        const rank = index + 1;
+        const rankClass = rank <= 3 ? `rank-${rank}` : "";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span class="rank-pill ${rankClass}">#${rank}</span></td>
+          <td class="fw-medium text-dark">${escapeHtml(entry.name)}</td>
+          <td class="text-end fw-semibold text-dark">₹${Number(
+            entry.total_expenses
+          ).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}</td>
+        `;
+        leaderboardTableBody.appendChild(tr);
+      });
+      leaderboardSection.classList.remove("d-none");
+      leaderboardSection.scrollIntoView({ behavior: "smooth" });
+    }
+  } catch (err) {
+    showAlert(err.message || "Failed to load leaderboard.", "danger");
   } finally {
-    localStorage.removeItem("user");
-    window.location.replace("/src/pages/login.html");
+    showLeaderboardBtn.disabled = false;
   }
-});
+}
 
+if (showLeaderboardBtn) {
+  showLeaderboardBtn.addEventListener("click", loadAndRenderLeaderboard);
+}
+
+if (closeLeaderboardBtn && leaderboardSection) {
+  closeLeaderboardBtn.addEventListener("click", () => {
+    leaderboardSection.classList.add("d-none");
+  });
+}
 let aiTypingTimer = null;
 
 function instantLocalCategory(text) {
@@ -379,15 +394,18 @@ if (descriptionInput && categoryInput) {
   descriptionInput.addEventListener("input", () => {
     clearTimeout(aiTypingTimer);
     const desc = descriptionInput.value.trim();
+
     if (desc.length < 3) {
       if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
       return;
     }
+
     const instantMatch = instantLocalCategory(desc);
     if (instantMatch) {
       applyCategoryOption(instantMatch, `⚡ AI: ${instantMatch}`);
       return;
     }
+
     aiTypingTimer = setTimeout(async () => {
       try {
         if (aiCategoryBadge) {
@@ -409,4 +427,34 @@ if (descriptionInput && categoryInput) {
     if (aiCategoryBadge) aiCategoryBadge.classList.add("d-none");
   });
 }
+if (getAiInsightsBtn && aiInsightsBox) {
+  getAiInsightsBtn.addEventListener("click", async () => {
+    try {
+      getAiInsightsBtn.disabled = true;
+      getAiInsightsBtn.textContent = "Analyzing...";
+      aiInsightsBox.textContent = "🧠 Gemini AI is reviewing your expenses...";
+      aiInsightsBox.classList.remove("d-none");
+
+      const res = await fetchAiInsights();
+      if (res.success) {
+        aiInsightsBox.textContent = res.insights;
+      }
+    } catch (err) {
+      aiInsightsBox.textContent = err.message || "Unable to fetch AI insights.";
+    } finally {
+      getAiInsightsBtn.disabled = false;
+      getAiInsightsBtn.textContent = "Analyze My Spending";
+    }
+  });
+}
+
+logoutBtn.addEventListener("click", async () => {
+  try {
+    await logoutUser();
+  } finally {
+    localStorage.removeItem("user");
+    window.location.replace("/src/pages/login.html");
+  }
+});
+
 initDashboard();
