@@ -42,10 +42,8 @@ export async function addExpense(req, res) {
       expense: rows[0],
     });
   } catch (error) {
-    console.error("Add Expense Error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error while adding expense." });
+    //console.error("Add Expense Error:", error);
+    next(error);
   }
 }
 export async function getExpenses(req, res) {
@@ -96,11 +94,8 @@ export async function getExpenses(req, res) {
       },
     });
   } catch (error) {
-    console.error("Get Paginated Expenses Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch expenses.",
-    });
+    //console.error("Get Paginated Expenses Error:", error);
+   return next(error);
   }
 }
 export async function deleteExpense(req,res)
@@ -118,7 +113,8 @@ export async function deleteExpense(req,res)
      }
      catch(error)
      {
-        console.error("Delete expense Error:",error);
-        return res.status(500).json({success:false,message:"Server error while deleting expense"});
+        //console.error("Delete expense Error:",error);
+        return next(error);
+        //return res.status(500).json({success:false,message:"Server error while deleting expense"});
      }
 }

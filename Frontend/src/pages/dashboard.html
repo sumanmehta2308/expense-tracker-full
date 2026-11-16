@@ -6,117 +6,312 @@
     <title>Dashboard — Expense Tracker</title>
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
   </head>
-  <body style="font-size: 15.5px;">
-    <header class="dash-navbar py-3">
-      <div
-        class="dash-container d-flex align-items-center justify-content-between flex-wrap gap-3"
-      >
-        <div class="d-flex align-items-center gap-2">
-          <div class="brand-logo"><i class="bi bi-wallet2"></i></div>
-          <span class="brand-name" style="font-size: 19px;">Expense Tracker</span>
-        </div>
+  <body class="bg-light" style="font-size: 15px;">
+    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top py-2.5 shadow-sm">
+      <div class="container-xl d-flex align-items-center justify-content-between">
+        <a
+          href="/src/pages/dashboard.html"
+          class="navbar-brand d-flex align-items-center gap-2 fw-bold text-dark m-0"
+        >
+          <span
+            class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary text-white"
+            style="width: 36px; height: 36px;"
+          >
+            <i class="bi bi-wallet2 fs-5"></i>
+          </span>
+          <span style="font-size: 19px; letter-spacing: -0.02em;">Expense Tracker</span>
+        </a>
 
-        <div class="d-flex align-items-center flex-wrap gap-2 gap-sm-3">
-          <button id="buyPremiumBtn" class="btn-premium" style="font-size: 14px; padding: 8px 16px;">
-            <i class="bi bi-star-fill"></i>
-            <span>Buy Premium Membership</span>
+        <div class="d-flex align-items-center gap-2 gap-md-3">
+         
+
+          <button
+            id="buyPremiumBtn"
+            type="button"
+            class="btn btn-warning btn-sm fw-semibold d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3 shadow-sm"
+          >
+            <i class="bi bi-stars"></i>
+            <span>Go Premium</span>
           </button>
 
-          <span id="premiumBadge" class="premium-badge d-none" style="font-size: 13.5px; padding: 6px 14px;">
-            <i class="bi bi-patch-check-fill"></i>
-            <span>You are a premium user now</span>
+          <span
+            id="premiumBadge"
+            class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2 fw-semibold d-none"
+            style="font-size: 13px;"
+          >
+            <i class="bi bi-patch-check-fill me-1"></i>Premium Member
           </span>
 
-          <button id="showLeaderboardBtn" class="btn-leaderboard d-none" style="font-size: 14px; padding: 8px 16px;">
+          <button
+            id="showLeaderboardBtn"
+            type="button"
+            class="btn btn-outline-warning text-dark btn-sm fw-semibold d-inline-flex align-items-center gap-1 px-3 py-2 rounded-3 d-none"
+          >
             <i class="bi bi-trophy-fill text-warning"></i>
-            <span>Show Leaderboard</span>
+            <span class="d-none d-sm-inline">Leaderboard</span>
           </button>
 
           <button
             id="openReportBtn"
-            class="btn-download-report"
-            style="font-size: 14px; padding: 8px 16px;"
+            type="button"
+            class="btn btn-outline-secondary btn-sm fw-semibold d-inline-flex align-items-center gap-1 px-3 py-2 rounded-3"
             disabled
             title="Premium Feature: View & Download Day to Day Expenses"
           >
-            <i class="bi bi-journal-text"></i>
-            <span>Day to Day Expenses</span>
+            <i class="bi bi-file-earmark-spreadsheet"></i>
+            <span class="d-none d-md-inline">Reports</span>
           </button>
 
-          <span id="userGreeting" class="user-pill d-none d-md-inline-flex" style="font-size: 14px;">
-            <i class="bi bi-person-circle"></i>
-            <span>Loading...</span>
-          </span>
-
-          <button id="logoutBtn" class="btn-logout" style="font-size: 14px; padding: 8px 14px;">
-            <i class="bi bi-box-arrow-right"></i>
-            <span>Sign out</span>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <main class="dash-container py-4 py-md-5">
-      <div class="mb-4">
-        <h1 class="h3 fw-bold mb-1" style="letter-spacing: -0.02em;">
-          Overview
-        </h1>
-        <p class="text-muted mb-0" style="font-size: 15px;">
-          Track your daily expenses and manage your spending habits
-        </p>
-      </div>
-
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-label" style="font-size: 14px;">
-            <span>Total Spent</span>
-            <i class="bi bi-currency-rupee text-primary"></i>
-          </div>
-          <div id="totalAmount" class="stat-value" style="font-size: 28px;">₹0.00</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-label" style="font-size: 14px;">
-            <span>Total Transactions</span>
-            <i class="bi bi-receipt text-muted"></i>
-          </div>
-          <div id="totalCount" class="stat-value" style="font-size: 28px;">0</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-label" style="font-size: 14px;">
-            <span>Top Category</span>
-            <i class="bi bi-pie-chart text-muted"></i>
-          </div>
-          <div id="topCategory" class="stat-value" style="font-size: 24px;">
-            —
-          </div>
-        </div>
-      </div>
-
-      <div class="dash-card p-4 mb-4">
-        <h2 class="dash-card-title mb-3" style="font-size: 18px;">Add New Expense</h2>
-        <div
-          id="alert-box"
-          class="alert d-none py-2 px-3 mb-3"
-          style="font-size: 14.5px;"
-          role="alert"
-        ></div>
-
-        <div class="dashboard-card mb-4 p-3 rounded border bg-light">
-          <div
-            class="d-flex justify-content-between align-items-center flex-wrap gap-2"
-          >
-            <div>
-              <h6 class="fw-bold mb-1 text-dark" style="font-size: 15.5px;">✨ AI Financial Advisor</h6>
-              <span class="text-muted" style="font-size: 14px;"
-                >Get personalized spending tips powered by Gemini AI</span
+          <div class="dropdown">
+            <button
+              id="userProfileDropdown"
+              class="btn btn-light border d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill dropdown-toggle"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <span
+                class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-bold"
+                style="width: 28px; height: 28px; font-size: 13px;"
               >
+                <i class="bi bi-person-fill"></i>
+              </span>
+              <span id="userGreeting" class="fw-semibold text-dark" style="font-size: 14px;">
+                <span>Account</span>
+              </span>
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2 p-2" style="min-width: 210px;">
+              <li class="px-3 py-2 border-bottom mb-1">
+                <div class="small text-muted">Signed in as</div>
+                <div id="dropdownUserName" class="fw-bold text-dark text-truncate">User</div>
+              </li>
+              <li>
+                <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" href="/src/pages/expense.html">
+                  <i class="bi bi-clock-history text-primary"></i>
+                  <span>Expense History</span>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider my-1" /></li>
+              <li>
+                <button
+                  id="logoutBtn"
+                  type="button"
+                  class="dropdown-item rounded-2 py-2 text-danger fw-semibold d-flex align-items-center gap-2"
+                >
+                  <i class="bi bi-box-arrow-right"></i>
+                  <span>Sign out</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container-xl py-4 py-md-5">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+          <h1 class="h3 fw-bold text-dark mb-1" style="letter-spacing: -0.02em;">
+            Financial Overview
+          </h1>
+          <p class="text-muted mb-0" style="font-size: 14.5px;">
+            Record daily transactions in seconds and monitor your spending habits
+          </p>
+        </div>
+
+        <a
+          href="/src/pages/expense.html"
+          id="heroViewExpensesBtn"
+          class="btn btn-dark fw-semibold px-4 py-2.5 rounded-3 d-inline-flex align-items-center gap-2 shadow-sm"
+        >
+          <span>View All Expenses</span>
+          <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="row g-3 g-md-4 mb-4">
+        <div class="col-12 col-md-4">
+          <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 12px; letter-spacing: 0.05em;">
+                  Total Spent
+                </div>
+                <div id="totalAmount" class="h3 fw-bold text-dark mb-0">₹0.00</div>
+              </div>
+              <div
+                class="d-flex align-items-center justify-content-center rounded-4 bg-primary-subtle text-primary"
+                style="width: 48px; height: 48px;"
+              >
+                <i class="bi bi-currency-rupee fs-4"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 12px; letter-spacing: 0.05em;">
+                  Total Transactions
+                </div>
+                <div id="totalCount" class="h3 fw-bold text-dark mb-0">0</div>
+              </div>
+              <div
+                class="d-flex align-items-center justify-content-center rounded-4 bg-success-subtle text-success"
+                style="width: 48px; height: 48px;"
+              >
+                <i class="bi bi-receipt-cutoff fs-4"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 12px; letter-spacing: 0.05em;">
+                  Top Category
+                </div>
+                <div id="topCategory" class="h4 fw-bold text-dark mb-0">—</div>
+              </div>
+              <div
+                class="d-flex align-items-center justify-content-center rounded-4 bg-warning-subtle text-warning"
+                style="width: 48px; height: 48px;"
+              >
+                <i class="bi bi-pie-chart-fill fs-4"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4 p-md-4">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div>
+              <h2 class="h5 fw-bold text-dark mb-0">Add New Expense</h2>
+              <small class="text-muted">Auto-categorized by AI as you type</small>
+            </div>
+          </div>
+
+          <div
+            id="alert-box"
+            class="alert d-none py-2.5 px-3 mb-3 fw-semibold rounded-3"
+            style="font-size: 14.5px;"
+            role="alert"
+          ></div>
+
+          <form id="expense-form" class="row g-3 align-items-end" novalidate>
+            <div class="col-12 col-sm-6 col-lg-2">
+              <label for="amount" class="form-label fw-semibold text-secondary small mb-1">Amount (₹)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="1"
+                class="form-control form-control-lg rounded-3 bg-light border-0"
+                style="font-size: 15px;"
+                id="amount"
+                placeholder="250"
+                required
+              />
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <label for="description" class="form-label fw-semibold text-secondary small mb-1">Description</label>
+              <input
+                type="text"
+                class="form-control form-control-lg rounded-3 bg-light border-0"
+                style="font-size: 15px;"
+                id="description"
+                placeholder="e.g. Lunch, Petrol"
+                required
+              />
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <label
+                for="category"
+                class="form-label fw-semibold text-secondary small mb-1 d-flex justify-content-between align-items-center"
+              >
+                <span>Category</span>
+                <span id="aiCategoryBadge" class="badge bg-primary-subtle text-primary d-none">✨ AI</span>
+              </label>
+              <select
+                class="form-select form-select-lg rounded-3 bg-light border-0"
+                style="font-size: 15px;"
+                id="category"
+                required
+              >
+                <option value="" selected disabled>Choose category</option>
+                <option value="Food">Food</option>
+                <option value="Fuel">Fuel</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Rent">Rent</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Bills">Bills</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Travel">Travel</option>
+                <option value="Health">Health</option>
+                <option value="Salary">Salary</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <label for="note" class="form-label fw-semibold text-secondary small mb-1">Note (Optional)</label>
+              <input
+                type="text"
+                class="form-control form-control-lg rounded-3 bg-light border-0"
+                style="font-size: 15px;"
+                id="note"
+                maxlength="255"
+                placeholder="Paid via UPI"
+              />
+            </div>
+
+            <div class="col-12 col-lg-2">
+              <button
+                type="submit"
+                id="addBtn"
+                class="btn btn-primary btn-lg w-100 fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-2"
+                style="font-size: 15px;"
+              >
+                <i class="bi bi-plus-circle"></i>
+                <span id="btnText">Add Expense</span>
+                <span
+                  id="btnSpinner"
+                  class="spinner-border spinner-border-sm d-none"
+                  role="status"
+                ></span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-4 bg-white">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div
+                class="d-flex align-items-center justify-content-center rounded-3 bg-primary text-white"
+                style="width: 42px; height: 42px;"
+              >
+                <i class="bi bi-stars fs-5"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-0 text-dark">AI Financial Advisor</h6>
+                <span class="text-muted small">Get personalized savings insights powered by Gemini AI</span>
+              </div>
             </div>
             <button
               id="getAiInsightsBtn"
               type="button"
-              class="btn btn-outline-primary fw-semibold"
+              class="btn btn-outline-primary fw-semibold px-4 rounded-3"
               style="font-size: 14px;"
             >
               Analyze My Spending
@@ -124,204 +319,47 @@
           </div>
           <div
             id="aiInsightsBox"
-            class="alert alert-white bg-white border mt-3 mb-0 d-none"
+            class="alert alert-light border mt-3 mb-0 rounded-3 d-none"
             style="white-space: pre-line; font-size: 14.5px; line-height: 1.6;"
           ></div>
         </div>
+      </div>
 
-        <form id="expense-form" class="row g-3 align-items-end" novalidate>
-          <div class="col-12 col-md-2">
-            <label for="amount" class="form-label fw-semibold" style="font-size: 14.5px;">Amount (₹)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="1"
-              class="form-control form-control-lg"
-              style="font-size: 15.5px;"
-              id="amount"
-              placeholder="e.g. 250"
-              required
-            />
-          </div>
-
-          <div class="col-12 col-md-3">
-            <label for="description" class="form-label fw-semibold" style="font-size: 14.5px;">Description</label>
-            <input
-              type="text"
-              class="form-control form-control-lg"
-              style="font-size: 15.5px;"
-              id="description"
-              placeholder="e.g. Lunch, Petrol"
-              required
-            />
-          </div>
-
-          <div class="col-12 col-md-3">
-            <label
-              for="category"
-              class="form-label fw-semibold d-flex justify-content-between align-items-center"
-              style="font-size: 14.5px;"
+      <div id="leaderboardSection" class="card border-0 shadow-sm rounded-4 mt-4 bg-white d-none">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="fw-bold mb-1 text-dark">
+                <i class="bi bi-trophy-fill text-warning me-2"></i>User Expense Leaderboard
+              </h5>
+              <p class="text-muted mb-0 small">
+                Ranked by highest total spending across all users
+              </p>
+            </div>
+            <button
+              id="closeLeaderboardBtn"
+              type="button"
+              class="btn btn-outline-secondary btn-sm rounded-3"
             >
-              <span>Category</span>
-              <span id="aiCategoryBadge" class="ai-chip d-none"
-                >✨ AI Suggested</span
-              >
-            </label>
-            <select class="form-select form-select-lg" style="font-size: 15.5px;" id="category" required>
-              <option value="" selected disabled>Choose category</option>
-              <option value="Food">Food</option>
-              <option value="Fuel">Fuel</option>
-              <option value="Petrol">Petrol</option>
-              <option value="Rent">Rent</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Bills">Bills</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Travel">Travel</option>
-              <option value="Health">Health</option>
-              <option value="Salary">Salary</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div class="col-12 col-md-2">
-            <label for="note" class="form-label fw-semibold" style="font-size: 14.5px;">Note (Optional)</label>
-            <input
-              type="text"
-              class="form-control form-control-lg"
-              style="font-size: 15.5px;"
-              id="note"
-              maxlength="255"
-              placeholder="e.g. Paid via UPI"
-            />
-          </div>
-
-          <div class="col-12 col-md-2">
-            <button type="submit" id="addBtn" class="btn-auth" style="height: 44px; font-size: 15.5px;">
-              <i class="bi bi-plus-lg"></i>
-              <span id="btnText">Add</span>
-              <span
-                id="btnSpinner"
-                class="spinner-border spinner-border-sm ms-1 d-none"
-                role="status"
-              ></span>
+              Hide
             </button>
           </div>
-        </form>
-      </div>
-
-      <div class="dash-card overflow-hidden">
-        <div class="dash-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <div>
-            <h2 class="dash-card-title mb-0" style="font-size: 18px;">Recent Expenses</h2>
-            <span class="text-muted" style="font-size: 13.5px;">Auto-saved to your account</span>
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 90px">Rank</th>
+                  <th>User Name</th>
+                  <th class="text-end">Total Expenses</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-table-body"></tbody>
+            </table>
           </div>
-
-          <div class="d-flex align-items-center gap-2">
-            <label for="rowsPerPageSelect" class="text-muted fw-semibold mb-0" style="font-size: 13.5px;">
-              Rows per page:
-            </label>
-            <select id="rowsPerPageSelect" class="form-select form-select-sm" style="width: 80px; font-size: 14px;">
-              <option value="5">5</option>
-              <option value="10" selected>10</option>
-              <option value="20">20</option>
-              <option value="40">40</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="expense-table" style="font-size: 15px;">
-            <thead>
-              <tr>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Note</th>
-                <th>Date</th>
-                <th class="text-end">Amount</th>
-                <th class="text-end">Action</th>
-              </tr>
-            </thead>
-            <tbody id="expense-table-body"></tbody>
-          </table>
-        </div>
-
-        <div id="emptyState" class="text-center py-5 d-none">
-          <div
-            class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3"
-            style="width: 52px; height: 52px"
-          >
-            <i class="bi bi-inbox text-muted fs-4"></i>
-          </div>
-          <p class="fw-semibold text-dark mb-1" style="font-size: 16px">
-            No expenses yet
-          </p>
-          <p class="text-muted mb-0" style="font-size: 14.5px;">
-            Add your first expense using the form above to see it here.
-          </p>
-        </div>
-
-        <div
-          id="paginationBar"
-          class="d-flex justify-content-between align-items-center flex-wrap gap-2 px-4 py-3 border-top bg-light d-none"
-        >
-          <div id="paginationInfo" class="text-muted fw-medium" style="font-size: 14px;">
-            Showing 0–0 of 0 expenses
-          </div>
-
-          <div class="d-flex align-items-center gap-2">
-            <button type="button" id="firstPageBtn" class="btn btn-sm btn-outline-secondary" title="First Page">
-              « First
-            </button>
-            <button type="button" id="prevPageBtn" class="btn btn-sm btn-outline-dark fw-semibold">
-              ‹ Prev
-            </button>
-            <span id="pageIndicator" class="px-2 fw-bold text-dark" style="font-size: 14px;">
-              Page 1 of 1
-            </span>
-            <button type="button" id="nextPageBtn" class="btn btn-sm btn-outline-dark fw-semibold">
-              Next ›
-            </button>
-            <button type="button" id="lastPageBtn" class="btn btn-sm btn-outline-secondary" title="Last Page">
-              Last »
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div id="leaderboardSection" class="dashboard-card mt-4 p-4 bg-white rounded border shadow-sm d-none">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <h5 class="fw-bold mb-1 text-dark" style="font-size: 18px;">
-              <i class="bi bi-trophy-fill text-warning me-2"></i>User Expense
-              Leaderboard
-            </h5>
-            <p class="text-muted mb-0" style="font-size: 14px;">
-              Ranked by highest total spending across all users
-            </p>
-          </div>
-          <button
-            id="closeLeaderboardBtn"
-            type="button"
-            class="btn btn-outline-secondary"
-            style="font-size: 14px;"
-          >
-            Hide
-          </button>
-        </div>
-        <div class="table-responsive">
-          <table class="table expense-table align-middle mb-0" style="font-size: 15px;">
-            <thead>
-              <tr>
-                <th style="width: 90px">Rank</th>
-                <th>User Name</th>
-                <th class="text-end">Total Expenses</th>
-              </tr>
-            </thead>
-            <tbody id="leaderboard-table-body"></tbody>
-          </table>
         </div>
       </div>
     </main>
+
     <script type="module" src="/src/scripts/dashboard.js"></script>
   </body>
 </html>

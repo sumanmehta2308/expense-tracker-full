@@ -41,8 +41,9 @@ export async function forgotPassword(req, res) {
 
     console.log("Generated Password Reset URL:", resetUrl);
     sendResetPasswordEmail(user.email, user.full_name, resetUrl).catch(
-      (err) => {
-        console.error("Reset Email Send Error:", err.message);
+      (error) => {
+       // console.error("Reset Email Send Error:", err.message);
+       next(error);
       }
     );
 
@@ -52,11 +53,8 @@ export async function forgotPassword(req, res) {
       resetUrl, // Testing में सुविधा के लिए
     });
   } catch (error) {
-    console.error("Forgot Password Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error while processing forgot password request.",
-    });
+    //console.error("Forgot Password Error:", error);
+    return next(error);
   }
 }
 
@@ -175,10 +173,8 @@ export async function getResetPasswordForm(req, res) {
       </html>
     `);
   } catch (error) {
-    console.error("Get Reset Form Error:", error);
-    return res
-      .status(500)
-      .send("Server error while loading reset password page.");
+    //console.error("Get Reset Form Error:", error);
+    return next(error);
   }
 }
 export async function updatePassword(req, res) {
@@ -218,10 +214,7 @@ export async function updatePassword(req, res) {
       message: "Password updated successfully!",
     });
   } catch (error) {
-    console.error("Update Password Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error while updating password.",
-    });
+   // console.error("Update Password Error:", error);
+   return next(err);
   }
 }

@@ -18,10 +18,7 @@ export async function getUserLeaderboard(req, res) {
       leaderboard,
     });
   } catch (error) {
-    console.error("Leaderboard Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to load leaderboard.",
-    });
+    //console.error("Leaderboard Error:", error);
+   return next(error);
   }
 }

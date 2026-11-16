@@ -1,0 +1,3 @@
+[2026-11-17 03:18:34] [ERROR]: ReferenceError: next is not defined
+    at startServer (file:///D:/expense-tracker/Backend/server.js:16:4)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)

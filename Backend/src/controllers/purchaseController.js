@@ -57,14 +57,7 @@ export async function createPremiumOrder(req, res) {
       payment_session_id: paymentSessionId,
     });
   } catch (error) {
-    console.error(
-      "Cashfree Create Order Error:",
-      error.response?.data || error.message
-    );
-    return res.status(500).json({
-      success: false,
-      message: "Failed to initiate payment order.",
-    });
+   return next(error);
   }
 }
 export async function updateTransactionStatus(req, res) {
@@ -104,10 +97,7 @@ export async function updateTransactionStatus(req, res) {
       });
     }
   } catch (error) {
-    console.error(
-      "Cashfree Verify Payment Error:",
-      error.response?.data || error.message
-    );
+   next(error);
     if (req.body?.orderId) {
       await pool
         .query(

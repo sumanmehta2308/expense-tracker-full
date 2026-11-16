@@ -81,12 +81,9 @@ Reply with ONLY the single category word, nothing else.`;
       source: "gemini-ai",
     });
   } catch (error) {
-    console.error("AI Categorize Error:", error.message);
-    return res.status(200).json({
-      success: true,
-      category: fallbackCategorize(req.body?.description || ""),
-      source: "fallback",
-    });
+    //console.error("AI Categorize Error:", error.message);
+     return next(error);
+    
   }
 }
 export async function getSpendingInsights(req, res) {
@@ -122,10 +119,8 @@ Expenses: ${summaryText}`;
       insights: response.text.trim(),
     });
   } catch (error) {
-    console.error("AI Insights Error:", error.message);
-    return res.status(500).json({
-      success: false,
-      message: "Could not generate AI insights right now.",
-    });
+    //console.error("AI Insights Error:", error.message);
+    return next(error);
+    
   }
 }

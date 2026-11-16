@@ -68,8 +68,9 @@ export async function initiateSignup(req, res) {
       );
     }
 
-    sendOtpEmail(cleanEmail, cleanName, otp).catch((err) => {
-      console.error("Background OTP Email Error:", err.message);
+    sendOtpEmail(cleanEmail, cleanName, otp).catch((error) => {
+      //console.error("Background OTP Email Error:", err.message);
+      next(error);
     });
 
     return res.status(200).json({
@@ -78,10 +79,8 @@ export async function initiateSignup(req, res) {
       email: cleanEmail,
     });
   } catch (error) {
-    console.error("Signup Error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error while sending OTP." });
+    // console.error("Signup Error:", error);
+     next(error);
   }
 }
 
@@ -131,11 +130,8 @@ export async function verifyOtp(req, res) {
       message: "Email verified!",
     });
   } catch (error) {
-    console.error("Verify OTP Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error during OTP verification.",
-    });
+   // console.error("Verify OTP Error:", error);
+   next(error);
   }
 }
 
@@ -181,11 +177,8 @@ export async function setPassword(req, res) {
       message: "Account created successfully!",
     });
   } catch (error) {
-    console.error("Set Password Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error while setting password.",
-    });
+    //console.error("Set Password Error:", error);
+    next(error);
   }
 }
 
@@ -264,10 +257,8 @@ export async function loginUser(req, res) {
       },
     });
   } catch (error) {
-    console.error("Login Error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error during login." });
+    //console.error("Login Error:", error);
+    next(error);
   }
 }
 export async function refreshAccessToken(req, res) {

@@ -1,31 +1,29 @@
 import "../utils/setup.js";
 import { getCurrentUser, logoutUser } from "../api/authApi.js";
-import {
-  fetchExpenses,
-  createExpense,
-  removeExpense,
-} from "../api/expenseApi.js";
+import { fetchExpenses, createExpense } from "../api/expenseApi.js";
 import {
   createPremiumOrder,
   verifyPremiumTransaction,
 } from "../api/purchaseApi.js";
 import { fetchLeaderboard } from "../api/premiumApi.js";
 import { suggestExpenseCategory, fetchAiInsights } from "../api/aiApi.js";
+
 const userGreeting = document.getElementById("userGreeting");
+const dropdownUserName = document.getElementById("dropdownUserName");
 const logoutBtn = document.getElementById("logoutBtn");
 const expenseForm = document.getElementById("expense-form");
 const amountInput = document.getElementById("amount");
 const descriptionInput = document.getElementById("description");
 const categoryInput = document.getElementById("category");
+const noteInput = document.getElementById("note");
 const alertBox = document.getElementById("alert-box");
 const addBtn = document.getElementById("addBtn");
 const btnText = document.getElementById("btnText");
 const btnSpinner = document.getElementById("btnSpinner");
-const tableBody = document.getElementById("expense-table-body");
-const emptyState = document.getElementById("emptyState");
 const totalAmountEl = document.getElementById("totalAmount");
 const totalCountEl = document.getElementById("totalCount");
 const topCategoryEl = document.getElementById("topCategory");
+
 const buyPremiumBtn = document.getElementById("buyPremiumBtn");
 const premiumBadge = document.getElementById("premiumBadge");
 const showLeaderboardBtn = document.getElementById("showLeaderboardBtn");
@@ -33,36 +31,27 @@ const openReportBtn = document.getElementById("openReportBtn");
 const leaderboardSection = document.getElementById("leaderboardSection");
 const leaderboardTableBody = document.getElementById("leaderboard-table-body");
 const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
+
 const aiCategoryBadge = document.getElementById("aiCategoryBadge");
 const getAiInsightsBtn = document.getElementById("getAiInsightsBtn");
 const aiInsightsBox = document.getElementById("aiInsightsBox");
-const rowsPerPageSelect = document.getElementById("rowsPerPageSelect");
-const paginationBar = document.getElementById("paginationBar");
-const paginationInfo = document.getElementById("paginationInfo");
-const pageIndicator = document.getElementById("pageIndicator");
-const firstPageBtn = document.getElementById("firstPageBtn");
-const prevPageBtn = document.getElementById("prevPageBtn");
-const nextPageBtn = document.getElementById("nextPageBtn");
-const lastPageBtn = document.getElementById("lastPageBtn");
-const noteInput = document.getElementById("note");
-let expensesList = [];
-let currentPage = 1;
-let itemsPerPage = Number(localStorage.getItem("expenses_per_page")) || 10;
-let totalPages = 1;
-let totalItems = 0;
 
-if (rowsPerPageSelect) {
-  rowsPerPageSelect.value = String(itemsPerPage);
-}
+let alertTimer = null;
 
 function showAlert(msg, type = "danger") {
+  clearTimeout(alertTimer);
   alertBox.textContent = msg;
-  alertBox.className = `alert alert-${type} small py-2 px-3 mb-3`;
+  alertBox.className = `alert alert-${type} py-2.5 px-3 mb-3 fw-semibold rounded-3`;
+  if (type === "success") {
+    alertTimer = setTimeout(() => {
+      alertBox.classList.add("d-none");
+    }, 3500);
+  }
 }
 
 function setLoading(loading) {
   addBtn.disabled = loading;
-  btnText.textContent = loading ? "Adding" : "Add";
+  btnText.textContent = loading ? "Adding..." : "Add Expense";
   btnSpinner.classList.toggle("d-none", !loading);
 }
 
@@ -88,55 +77,17 @@ function updatePremiumUI(isPremium) {
   }
 }
 
-function formatDate(dateString) {
-  if (!dateString) return "Today";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 function updateSummaryCards(summary) {
-  if (summary) {
-    totalAmountEl.textContent = `₹${Number(summary.totalSpent).toLocaleString(
-      "en-IN",
-      {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }
-    )}`;
-    totalCountEl.textContent = summary.totalCount;
-    topCategoryEl.textContent = summary.topCategory || "—";
-    return;
-  }
-
-  const total = expensesList.reduce(
-    (sum, item) => sum + Number(item.amount),
-    0
-  );
-  totalAmountEl.textContent = `₹${total.toLocaleString("en-IN", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-  totalCountEl.textContent = expensesList.length;
-
-  if (expensesList.length === 0) {
-    topCategoryEl.textContent = "—";
-    return;
-  }
-
-  const categoryTotals = {};
-  expensesList.forEach((item) => {
-    categoryTotals[item.category] =
-      (categoryTotals[item.category] || 0) + Number(item.amount);
-  });
-
-  const highestCat = Object.entries(categoryTotals).sort(
-    (a, b) => b[1] - a[1]
-  )[0][0];
-  topCategoryEl.textContent = highestCat;
+  if (!summary) return;
+  totalAmountEl.textContent = `₹${Number(summary.totalSpent).toLocaleString(
+    "en-IN",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  )}`;
+  totalCountEl.textContent = summary.totalCount;
+  topCategoryEl.textContent = summary.topCategory || "—";
 }
 
 function escapeHtml(str) {
@@ -145,85 +96,14 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function renderExpenses(summary) {
-  tableBody.innerHTML = "";
-  updateSummaryCards(summary);
-
-  if (expensesList.length === 0) {
-    emptyState.classList.remove("d-none");
-    return;
-  }
-
-  emptyState.classList.add("d-none");
-
-  expensesList.forEach((expense) => {
-    const safeCategory = escapeHtml(expense.category);
-    const tr = document.createElement("tr");
-    tr.dataset.id = expense.id;
-    tr.innerHTML = `
-      <td class="fw-medium text-dark">${escapeHtml(expense.description)}</td>
-      <td><span class="cat-badge cat-${safeCategory}">${safeCategory}</span></td>
-      <td class="text-muted small">${
-        expense.note ? escapeHtml(expense.note) : "—"
-      }</td>
-      <td class="text-muted small">${formatDate(expense.created_at)}</td>
-      <td class="text-end fw-semibold text-dark">₹${Number(
-        expense.amount
-      ).toLocaleString("en-IN", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}</td>
-      <td class="text-end">
-        <button type="button" class="btn-delete-row delete-btn" data-id="${
-          expense.id
-        }" title="Delete expense">
-          <i class="bi bi-trash"></i>
-        </button>
-      </td>
-    `;
-    tableBody.appendChild(tr);
-  });
-}
-
-function renderPaginationControls() {
-  if (!paginationBar) return;
-
-  if (totalItems === 0) {
-    paginationBar.classList.add("d-none");
-    return;
-  }
-
-  paginationBar.classList.remove("d-none");
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-
-  paginationInfo.textContent = `Showing ${startItem}–${endItem} of ${totalItems} expenses`;
-  pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
-
-  firstPageBtn.disabled = currentPage <= 1;
-  prevPageBtn.disabled = currentPage <= 1;
-  nextPageBtn.disabled = currentPage >= totalPages;
-  lastPageBtn.disabled = currentPage >= totalPages;
-}
-
-async function loadExpensesPage(page = 1) {
+async function refreshSummary() {
   try {
-    const expenseRes = await fetchExpenses(page, itemsPerPage);
-    if (expenseRes.success) {
-      expensesList = expenseRes.expenses;
-      currentPage = expenseRes.pagination.currentPage;
-      totalPages = expenseRes.pagination.totalPages;
-      totalItems = expenseRes.pagination.totalItems;
-
-      if (currentPage > totalPages && totalPages >= 1) {
-        return loadExpensesPage(totalPages);
-      }
-
-      renderExpenses(expenseRes.summary);
-      renderPaginationControls();
+    const res = await fetchExpenses(1, 1);
+    if (res.success && res.summary) {
+      updateSummaryCards(res.summary);
     }
-  } catch (err) {
-    showAlert(err.message || "Failed to load expenses.");
+  } catch (error) {
+    console.error("Summary fetch error:", error);
   }
 }
 
@@ -234,45 +114,37 @@ async function initDashboard() {
       window.location.replace("/src/pages/login.html");
       return;
     }
+
     updatePremiumUI(Boolean(authRes.user.is_premium));
+
+    const fullName = authRes.user.full_name || "User";
     if (userGreeting) {
       const innerSpan = userGreeting.querySelector("span");
       if (innerSpan) {
-        innerSpan.textContent = authRes.user.full_name;
+        innerSpan.textContent = fullName;
       } else {
-        userGreeting.textContent = `Hi, ${authRes.user.full_name}`;
+        userGreeting.textContent = fullName;
       }
     }
-    await loadExpensesPage(1);
-  } catch (err) {
-    console.error("Dashboard Init Error:", err);
+    if (dropdownUserName) {
+      dropdownUserName.textContent = fullName;
+    }
+
+    await refreshSummary();
+  } catch (error) {
+    console.error("Dashboard Init Error:", error);
     window.location.replace("/src/pages/login.html");
   }
 }
-if (rowsPerPageSelect) {
-  rowsPerPageSelect.addEventListener("change", () => {
-    itemsPerPage = Number(rowsPerPageSelect.value) || 10;
-    localStorage.setItem("expenses_per_page", String(itemsPerPage));
-    loadExpensesPage(1);
-  });
-}
 
-if (firstPageBtn) {
-  firstPageBtn.addEventListener("click", () => loadExpensesPage(1));
-}
-if (prevPageBtn) {
-  prevPageBtn.addEventListener("click", () =>
-    loadExpensesPage(currentPage - 1)
-  );
-}
-if (nextPageBtn) {
-  nextPageBtn.addEventListener("click", () =>
-    loadExpensesPage(currentPage + 1)
-  );
-}
-if (lastPageBtn) {
-  lastPageBtn.addEventListener("click", () => loadExpensesPage(totalPages));
-}
+document
+  .querySelectorAll('a[href="/src/pages/expense.html"]')
+  .forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.location.assign("/src/pages/expense.html");
+    });
+  });
 
 if (openReportBtn) {
   openReportBtn.addEventListener("click", () => {
@@ -304,31 +176,15 @@ expenseForm.addEventListener("submit", async (e) => {
     const res = await createExpense({ amount, description, category, note });
 
     if (res.success) {
-      await loadExpensesPage(1);
       expenseForm.reset();
       amountInput.focus();
+      showAlert("✅ Your data is added successfully!", "success");
+      await refreshSummary();
     }
   } catch (err) {
     showAlert(err.message);
   } finally {
     setLoading(false);
-  }
-});
-tableBody.addEventListener("click", async (e) => {
-  const deleteBtn = e.target.closest(".delete-btn");
-  if (!deleteBtn) return;
-
-  const expenseId = deleteBtn.dataset.id;
-  deleteBtn.disabled = true;
-
-  try {
-    const res = await removeExpense(expenseId);
-    if (res.success) {
-      await loadExpensesPage(currentPage);
-    }
-  } catch (err) {
-    showAlert(err.message);
-    deleteBtn.disabled = false;
   }
 });
 
@@ -352,7 +208,6 @@ if (buyPremiumBtn) {
 
       const verifyRes = await verifyPremiumTransaction(orderRes.order_id);
       if (verifyRes.success) {
-        alert("Transaction successful");
         showAlert(
           "Transaction successful! You are now a Premium User.",
           "success"
@@ -360,7 +215,6 @@ if (buyPremiumBtn) {
         updatePremiumUI(true);
       }
     } catch (err) {
-      alert("TRANSACTION FAILED");
       showAlert(err.message || "TRANSACTION FAILED", "danger");
     } finally {
       buyPremiumBtn.disabled = false;
@@ -376,12 +230,11 @@ async function loadAndRenderLeaderboard() {
       leaderboardTableBody.innerHTML = "";
       res.leaderboard.forEach((entry, index) => {
         const rank = index + 1;
-        const rankClass = rank <= 3 ? `rank-${rank}` : "";
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td><span class="rank-pill ${rankClass}">#${rank}</span></td>
-          <td class="fw-medium text-dark">${escapeHtml(entry.name)}</td>
-          <td class="text-end fw-semibold text-dark">₹${Number(
+          <td><span class="badge bg-dark rounded-pill px-2.5 py-1">#${rank}</span></td>
+          <td class="fw-semibold text-dark">${escapeHtml(entry.name)}</td>
+          <td class="text-end fw-bold text-dark">₹${Number(
             entry.total_expenses
           ).toLocaleString("en-IN", {
             minimumFractionDigits: 2,
@@ -511,6 +364,7 @@ if (getAiInsightsBtn && aiInsightsBox) {
       getAiInsightsBtn.textContent = "Analyzing...";
       aiInsightsBox.textContent = "🧠 Gemini AI is reviewing your expenses...";
       aiInsightsBox.classList.remove("d-none");
+
       const res = await fetchAiInsights();
       if (res.success) {
         aiInsightsBox.textContent = res.insights;
@@ -523,12 +377,16 @@ if (getAiInsightsBtn && aiInsightsBox) {
     }
   });
 }
-logoutBtn.addEventListener("click", async () => {
-  try {
-    await logoutUser();
-  } finally {
-    localStorage.removeItem("user");
-    window.location.replace("/src/pages/login.html");
-  }
-});
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      await logoutUser();
+    } finally {
+      localStorage.removeItem("user");
+      window.location.replace("/src/pages/login.html");
+    }
+  });
+}
+
 initDashboard();
