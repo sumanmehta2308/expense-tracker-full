@@ -1,6 +1,10 @@
 import "../utils/setup.js";
 import { getCurrentUser } from "../api/authApi.js";
-import { fetchExpenses } from "../api/expenseApi.js";
+import {
+  fetchExpenses,
+  downloadExpensesFile,
+  fetchDownloadHistory,
+} from "../api/expenseApi.js";
 
 const reportTimestamp = document.getElementById("reportTimestamp");
 const reportLedgerBody = document.getElementById("report-ledger-body");
@@ -10,6 +14,9 @@ const reportNotesBody = document.getElementById("report-notes-body");
 const reportIncomeForm = document.getElementById("reportIncomeForm");
 const reportFilterBtns = document.querySelectorAll(".report-filter-btn");
 const downloadCsvBtn = document.getElementById("downloadCsvBtn");
+const s3LinkAlert = document.getElementById("s3LinkAlert");
+const s3FileAnchor = document.getElementById("s3FileAnchor");
+const downloadHistoryBody = document.getElementById("downloadHistoryBody");
 
 let expensesList = [];
 let currentReportFilter = "daily";
@@ -168,6 +175,7 @@ function renderReportPage() {
       </td>
     </tr>
   `;
+
   const currentMonthName = new Date().toLocaleString("en-IN", {
     month: "long",
   });
@@ -194,7 +202,6 @@ function renderReportPage() {
     </tr>
   `;
 
-  // Notes Report Table
   if (localNotesList.length === 0) {
     reportNotesBody.innerHTML = `<tr><td colspan="2" class="text-muted text-center small py-2">No notes added yet.</td></tr>`;
   } else {
@@ -208,6 +215,46 @@ function renderReportPage() {
       `
       )
       .join("");
+  }
+}
+
+async function loadDownloadHistory() {
+  if (!downloadHistoryBody) return;
+  try {
+    const res = await fetchDownloadHistory();
+    if (res.success) {
+      downloadHistoryBody.innerHTML =
+        res.history && res.history.length > 0
+          ? res.history
+              .map(
+                (item) => `
+              <tr>
+                <td class="fw-medium text-dark">${escapeHtml(
+                  item.file_name
+                )}</td>
+                <td class="text-muted small">${new Date(
+                  item.downloaded_at
+                ).toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}</td>
+                <td class="text-end">
+                  <a href="${escapeHtml(
+                    item.file_url
+                  )}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary fw-semibold">
+                    <i class="bi bi-download me-1"></i>Download Again
+                  </a>
+                </td>
+              </tr>`
+              )
+              .join("")
+          : `<tr><td colspan="3" class="text-center text-muted py-3">No files downloaded yet.</td></tr>`;
+    }
+  } catch (err) {
+    downloadHistoryBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Unable to load download history.</td></tr>`;
   }
 }
 
@@ -254,50 +301,29 @@ if (reportIncomeForm) {
 }
 
 if (downloadCsvBtn) {
-  downloadCsvBtn.addEventListener("click", () => {
-    const csvRows = [
-      ["Date", "Description", "Category", "Income (INR)", "Expense (INR)"].join(
-        ","
-      ),
-    ];
+  downloadCsvBtn.addEventListener("click", async () => {
+    const labelSpan = downloadCsvBtn.querySelector("span");
+    try {
+      downloadCsvBtn.disabled = true;
+      if (labelSpan) labelSpan.textContent = "Uploading to S3...";
 
-    expensesList.forEach((e) => {
-      csvRows.push(
-        [
-          formatLedgerDate(e.created_at),
-          `"${String(e.description).replace(/"/g, '""')}"`,
-          `"${String(e.category).replace(/"/g, '""')}"`,
-          "0.00",
-          Number(e.amount).toFixed(2),
-        ].join(",")
-      );
-    });
+      const res = await downloadExpensesFile();
+      if (res.success && res.fileUrl) {
+        if (s3LinkAlert && s3FileAnchor) {
+          s3FileAnchor.href = res.fileUrl;
+          s3FileAnchor.textContent = res.fileUrl;
+          s3LinkAlert.classList.remove("d-none");
+        }
 
-    localIncomesList.forEach((inc) => {
-      csvRows.push(
-        [
-          formatLedgerDate(inc.created_at),
-          `"${String(inc.description).replace(/"/g, '""')}"`,
-          "Salary / Income",
-          Number(inc.amount).toFixed(2),
-          "0.00",
-        ].join(",")
-      );
-    });
-
-    const blob = new Blob([csvRows.join("\n")], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Day_To_Day_Expenses_Report_${formatLedgerDate(
-      new Date()
-    )}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+        window.open(res.fileUrl, "_blank");
+        await loadDownloadHistory();
+      }
+    } catch (err) {
+      alert(err.message || "Failed to generate S3 file.");
+    } finally {
+      downloadCsvBtn.disabled = false;
+      if (labelSpan) labelSpan.textContent = "Download Expenses";
+    }
   });
 }
 
@@ -314,11 +340,12 @@ async function initReportPage() {
       return;
     }
 
-    const expRes = await fetchExpenses();
+    const expRes = await fetchExpenses(1, 1000);
     if (expRes.success) {
       expensesList = expRes.expenses;
     }
     renderReportPage();
+    await loadDownloadHistory();
   } catch (err) {
     window.location.replace("/src/pages/dashboard.html");
   }

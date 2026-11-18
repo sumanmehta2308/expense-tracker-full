@@ -17,3 +17,10 @@ export function removeExpense(expenseId) {
     method: "DELETE",
   });
 }
+export async function downloadExpensesFile() {
+  return apiRequest("/expenses/download", { method: "GET" });
+}
+
+export async function fetchDownloadHistory() {
+  return apiRequest("/expenses/download-history", { method: "GET" });
+}

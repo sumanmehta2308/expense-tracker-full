@@ -118,3 +118,77 @@ export async function deleteExpense(req,res)
         //return res.status(500).json({success:false,message:"Server error while deleting expense"});
      }
 }
+export async function downloadExpensesS3(req, res, next) {
+  try {
+    const userId = req.user.id;
+
+    if (!req.user.is_premium) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Premium membership required.",
+      });
+    }
+
+    const [expenses] = await pool.query(
+      "SELECT amount, description, category, note, created_at FROM expenses WHERE user_id = ? ORDER BY created_at DESC",
+      [userId]
+    );
+
+    const csvRows = [
+      ["Date", "Description", "Category", "Note", "Amount (INR)"].join(","),
+    ];
+
+    expenses.forEach((exp) => {
+      const dateStr = new Date(exp.created_at).toLocaleDateString("en-IN");
+      const safeDesc = `"${String(exp.description || "").replace(/"/g, '""')}"`;
+      const safeCat = `"${String(exp.category || "").replace(/"/g, '""')}"`;
+      const safeNote = `"${String(exp.note || "").replace(/"/g, '""')}"`;
+      csvRows.push(
+        [dateStr, safeDesc, safeCat, safeNote, exp.amount].join(",")
+      );
+    });
+
+    const csvString = csvRows.join("\n");
+    const fileName = `Expense_${userId}_${Date.now()}.csv`;
+
+    const fileUrl = await uploadToS3(csvString, fileName);
+
+    await pool.query(
+      "INSERT INTO downloaded_files (user_id, file_url, file_name) VALUES (?, ?, ?)",
+      [userId, fileUrl, fileName]
+    );
+
+    return res.status(200).json({
+      success: true,
+      fileUrl,
+      fileName,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function getDownloadHistory(req, res, next) {
+  try {
+    const userId = req.user.id;
+
+    if (!req.user.is_premium) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Premium membership required.",
+      });
+    }
+
+    const [history] = await pool.query(
+      "SELECT id, file_url, file_name, downloaded_at FROM downloaded_files WHERE user_id = ? ORDER BY downloaded_at DESC",
+      [userId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      history,
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
