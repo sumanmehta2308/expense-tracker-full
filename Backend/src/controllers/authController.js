@@ -182,7 +182,7 @@ export async function setPassword(req, res) {
   }
 }
 
-export async function loginUser(req, res) {
+export async function loginUser(req, res,next) {
   try {
     const { email, password } = req.body;
     if (!email || !password) 
@@ -256,9 +256,10 @@ export async function loginUser(req, res) {
         email: user.email,
       },
     });
-  } catch (error) {
-    //console.error("Login Error:", error);
-    next(error);
+  }  catch (error) {
+    console.error("Login Error:", error);
+    if (typeof next === "function") return next(error);
+    return res.status(500).json({ success: false, message: error.message || "Internal server error" });
   }
 }
 export async function refreshAccessToken(req, res) {
