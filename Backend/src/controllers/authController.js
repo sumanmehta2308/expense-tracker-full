@@ -11,17 +11,17 @@ function hashToken(token) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-function getCookieOptions(maxAgeMs) {
-  const isProd = process.env.NODE_ENV === "production";
+function getCookieOptions(req, maxAgeMs) {
+  const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
   return {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    secure: isHttps,
+    sameSite: isHttps ? "none" : "lax",
     maxAge: maxAgeMs,
   };
 }
 
-export async function initiateSignup(req, res) {
+export async function initiateSignup(req, res,next) {
   try {
     const { full_name, email } = req.body;
     if (!full_name || full_name.trim().length < 3) {
@@ -84,7 +84,7 @@ export async function initiateSignup(req, res) {
   }
 }
 
-export async function verifyOtp(req, res) {
+export async function verifyOtp(req, res,next) {
   try {
     const { email, otp } = req.body;
     if (!email || !otp) {
@@ -135,7 +135,7 @@ export async function verifyOtp(req, res) {
   }
 }
 
-export async function setPassword(req, res) {
+export async function setPassword(req, res,next) {
   try {
     const { email, password } = req.body;
 

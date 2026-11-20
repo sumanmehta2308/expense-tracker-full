@@ -4,7 +4,6 @@ import fs from "fs";
 
 const inputFiles = {
   main: resolve(import.meta.dirname, "index.html"),
-  expenses: resolve(__dirname, "src/pages/expense.html"),
 };
 
 const pagesDir = resolve(import.meta.dirname, "src/pages");

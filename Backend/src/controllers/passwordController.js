@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import pool from "../config/db.js";
 import { sendResetPasswordEmail } from "../utils/emailService.js";
-export async function forgotPassword(req, res) {
+export async function forgotPassword(req, res,next) {
   try {
     const { email } = req.body;
 
@@ -42,24 +42,20 @@ export async function forgotPassword(req, res) {
     console.log("Generated Password Reset URL:", resetUrl);
     sendResetPasswordEmail(user.email, user.full_name, resetUrl).catch(
       (error) => {
-       // console.error("Reset Email Send Error:", err.message);
-       next(error);
+        console.error("Reset Email Send Error:", err.message);
       }
     );
 
     return res.status(200).json({
       success: true,
       message: "Password reset link has been sent to your email!",
-      resetUrl, // Testing में सुविधा के लिए
+      resetUrl,
     });
   } catch (error) {
-    //console.error("Forgot Password Error:", error);
     return next(error);
   }
 }
-
-// 2. GET /password/resetpassword/:id — Verify UUID & Return Password Reset Form
-export async function getResetPasswordForm(req, res) {
+export async function getResetPasswordForm(req, res,next) {
   try {
     const { id } = req.params;
     const [rows] = await pool.query(
@@ -173,11 +169,10 @@ export async function getResetPasswordForm(req, res) {
       </html>
     `);
   } catch (error) {
-    //console.error("Get Reset Form Error:", error);
     return next(error);
   }
 }
-export async function updatePassword(req, res) {
+export async function updatePassword(req, res,next) {
   try {
     const { id } = req.params;
     const { newPassword } = req.body;
@@ -214,7 +209,6 @@ export async function updatePassword(req, res) {
       message: "Password updated successfully!",
     });
   } catch (error) {
-   // console.error("Update Password Error:", error);
-   return next(err);
+     return next(error);
   }
 }

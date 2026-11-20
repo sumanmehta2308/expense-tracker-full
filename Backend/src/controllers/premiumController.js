@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 
-export async function getUserLeaderboard(req, res) {
+export async function getUserLeaderboard(req, res,next) {
   try {
     const [leaderboard] = await pool.query(`
       SELECT 
@@ -18,7 +18,6 @@ export async function getUserLeaderboard(req, res) {
       leaderboard,
     });
   } catch (error) {
-    //console.error("Leaderboard Error:", error);
    return next(error);
   }
 }

@@ -12,8 +12,7 @@ async function run() {
       await migration.up(pool);
     }
   } catch (error) {
-    //console.error("Migration Error:", err.message);
-    next(error);
+    console.error("Migration Error:", err.message);
   } finally {
     await pool.end();
   }

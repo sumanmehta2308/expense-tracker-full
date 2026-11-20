@@ -6,7 +6,7 @@ const cashfree = new Cashfree(
   process.env.CASHFREE_APP_ID,
   process.env.CASHFREE_SECRET_KEY
 );
-export async function createPremiumOrder(req, res) {
+export async function createPremiumOrder(req, res,next) {
   try {
     const userId = req.user.id;
     const orderAmount = 499.0;
@@ -97,7 +97,6 @@ export async function updateTransactionStatus(req, res) {
       });
     }
   } catch (error) {
-   next(error);
     if (req.body?.orderId) {
       await pool
         .query(

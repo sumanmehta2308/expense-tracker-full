@@ -340,7 +340,7 @@ async function initReportPage() {
       return;
     }
 
-    const expRes = await fetchExpenses(1, 1000);
+    const expRes = await fetchExpenses(1, 100);
     if (expRes.success) {
       expensesList = expRes.expenses;
     }

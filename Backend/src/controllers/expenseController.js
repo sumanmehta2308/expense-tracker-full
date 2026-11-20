@@ -1,7 +1,7 @@
 import pool from "../config/db.js";
-export async function addExpense(req, res) {
+export async function addExpense(req, res,next) {
   try {
-    const { amount, description, category } = req.body;
+    const { amount, description, category,note} = req.body;
     const userId = req.user.id;
 
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
@@ -27,7 +27,7 @@ export async function addExpense(req, res) {
     }
 
     const [result] = await pool.query(
-      "INSERT INTO expenses (user_id, amount, description, category,notes) VALUES (?, ?, ?, ?)",
+      "INSERT INTO expenses (user_id, amount, description, category,note) VALUES (?, ?, ?, ?,?)",
       [userId, Number(amount).toFixed(2), description.trim(), category.trim()]
     );
 
@@ -46,7 +46,7 @@ export async function addExpense(req, res) {
     next(error);
   }
 }
-export async function getExpenses(req, res) {
+export async function getExpenses(req, res,next) {
   try {
     const userId = req.user.id;
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
@@ -58,7 +58,7 @@ export async function getExpenses(req, res) {
 
     
     const [expenses] = await pool.query(
-      "SELECT id, amount, description, category,note created_at FROM expenses WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
+      "SELECT id, amount, description, category,note, created_at FROM expenses WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
       [userId, limit, offset]
     );
 
@@ -98,13 +98,13 @@ export async function getExpenses(req, res) {
    return next(error);
   }
 }
-export async function deleteExpense(req,res)
+export async function deleteExpense(req,res,next)
 {
      try
      {
         const {id}=req.params;
         const userId=req.user.id;
-        const [result]=await pool.query("delete from expenses where id=? and user_id=?,[id,userId]");
+        const [result]=await pool.query("delete from expenses where id=? and user_id=?",[id,userId]);
         if(result.affectedRows===0)
         {
             return res.status(400).json({success:false,message:"Expense not found"});
@@ -121,14 +121,6 @@ export async function deleteExpense(req,res)
 export async function downloadExpensesS3(req, res, next) {
   try {
     const userId = req.user.id;
-
-    if (!req.user.is_premium) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: Premium membership required.",
-      });
-    }
-
     const [expenses] = await pool.query(
       "SELECT amount, description, category, note, created_at FROM expenses WHERE user_id = ? ORDER BY created_at DESC",
       [userId]
@@ -171,14 +163,6 @@ export async function downloadExpensesS3(req, res, next) {
 export async function getDownloadHistory(req, res, next) {
   try {
     const userId = req.user.id;
-
-    if (!req.user.is_premium) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: Premium membership required.",
-      });
-    }
-
     const [history] = await pool.query(
       "SELECT id, file_url, file_name, downloaded_at FROM downloaded_files WHERE user_id = ? ORDER BY downloaded_at DESC",
       [userId]

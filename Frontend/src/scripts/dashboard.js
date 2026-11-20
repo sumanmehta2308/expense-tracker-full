@@ -109,6 +109,28 @@ async function refreshSummary() {
 
 async function initDashboard() {
   try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnedOrderId = urlParams.get("order_id");
+    if (returnedOrderId) {
+      try {
+        const verifyRes = await verifyPremiumTransaction(returnedOrderId);
+        if (verifyRes.success) {
+          showAlert(
+            "Transaction successful! You are now a Premium User.",
+            "success"
+          );
+        }
+      } catch (e) {
+        showAlert(e.message || "Payment verification failed.", "danger");
+      } finally {
+        window.history.replaceState(
+          {},
+          document.title,
+          "/src/pages/dashboard.html"
+        );
+      }
+    }
+
     const authRes = await getCurrentUser();
     if (!authRes.success) {
       window.location.replace("/src/pages/login.html");
