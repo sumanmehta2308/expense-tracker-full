@@ -1,8 +1,7 @@
-
 pipeline {
     agent any
-    options 
-    {
+
+    options {
         disableConcurrentBuilds()
         timestamps()
         timeout(time: 15, unit: 'MINUTES')
@@ -14,33 +13,30 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Install Dependencies') {
+        stage('Deploy Application') {
             steps {
-                dir('Backend') {
-                    sh 'npm ci --omit=dev'
-                }
+                sh '''
+                    sudo -u ec2-user bash -c '
+                        cd /home/ec2-user/expense-tracker-full
+                        git pull origin main
+                        cd Backend
+                        npm install --omit=dev
+                        pm2 reload expense-backend --update-env
+                        cd ../Frontend
+                        npm install
+                        npm run build
+                    '
+                '''
             }
         }
-       stage('Deploy Application') {
-    steps {
-        sh '''
-            cd /home/ec2-user/expense-tracker-full
-            git pull origin main
-            cd Backend
-            npm ci --omit=dev
-            pm2 reload expense-backend
-            cd ../Frontend
-            npm ci
-            npm run build
-        '''
-    }
-}
+
         stage('Verify Deployment') {
             steps {
-                sh 'pm2 status expense-backend'
+                sh 'sudo -u ec2-user pm2 status expense-backend'
             }
         }
     }
+
     post {
         success {
             echo 'Expense Tracker deployed successfully!'
