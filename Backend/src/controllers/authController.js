@@ -7,12 +7,15 @@ import { sendOtpEmail } from "../utils/emailService.js";
 function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
+
 function hashToken(token) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
 function getCookieOptions(req, maxAgeMs) {
-  const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
+  const isHttps = Boolean(
+    req?.secure || req?.headers?.["x-forwarded-proto"] === "https"
+  );
   return {
     httpOnly: true,
     secure: isHttps,
@@ -21,7 +24,7 @@ function getCookieOptions(req, maxAgeMs) {
   };
 }
 
-export async function initiateSignup(req, res,next) {
+export async function initiateSignup(req, res, next) {
   try {
     const { full_name, email } = req.body;
     if (!full_name || full_name.trim().length < 3) {
@@ -43,7 +46,7 @@ export async function initiateSignup(req, res,next) {
       "SELECT * FROM users WHERE email = ?",
       [cleanEmail]
     );
-    if(
+    if (
       existingUsers.length > 0 &&
       existingUsers[0].is_verified &&
       existingUsers[0].password_hash
@@ -53,6 +56,7 @@ export async function initiateSignup(req, res,next) {
         message: "Email is already registered. Please Sign In.",
       });
     }
+
     const otp = generateOtp();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -68,9 +72,8 @@ export async function initiateSignup(req, res,next) {
       );
     }
 
-    sendOtpEmail(cleanEmail, cleanName, otp).catch((error) => {
-      //console.error("Background OTP Email Error:", err.message);
-      next(error);
+    sendOtpEmail(cleanEmail, cleanName, otp).catch((err) => {
+      console.error("Background OTP Email Error:", err.message);
     });
 
     return res.status(200).json({
@@ -79,12 +82,11 @@ export async function initiateSignup(req, res,next) {
       email: cleanEmail,
     });
   } catch (error) {
-    // console.error("Signup Error:", error);
-     next(error);
+    return next(error);
   }
 }
 
-export async function verifyOtp(req, res,next) {
+export async function verifyOtp(req, res, next) {
   try {
     const { email, otp } = req.body;
     if (!email || !otp) {
@@ -120,6 +122,7 @@ export async function verifyOtp(req, res,next) {
         message: "OTP has expired. Please request a new one.",
       });
     }
+
     await pool.query(
       "UPDATE users SET is_verified = TRUE, otp = NULL, otp_expiry = NULL WHERE email = ?",
       [cleanEmail]
@@ -130,12 +133,11 @@ export async function verifyOtp(req, res,next) {
       message: "Email verified!",
     });
   } catch (error) {
-   // console.error("Verify OTP Error:", error);
-   next(error);
+    return next(error);
   }
 }
 
-export async function setPassword(req, res,next) {
+export async function setPassword(req, res, next) {
   try {
     const { email, password } = req.body;
 
@@ -156,6 +158,7 @@ export async function setPassword(req, res,next) {
         .status(404)
         .json({ success: false, message: "User not found." });
     }
+
     const user = users[0];
     if (!user.is_verified) {
       return res.status(403).json({
@@ -177,47 +180,51 @@ export async function setPassword(req, res,next) {
       message: "Account created successfully!",
     });
   } catch (error) {
-    //console.error("Set Password Error:", error);
-    next(error);
+    return next(error);
   }
 }
 
-export async function loginUser(req, res,next) {
+export async function loginUser(req, res, next) {
   try {
     const { email, password } = req.body;
-    if (!email || !password) 
-    {
+    if (!email || !password) {
       return res
         .status(400)
         .json({ success: false, message: "Email and password are required." });
     }
+
     const cleanEmail = email.trim().toLowerCase();
     const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [
       cleanEmail,
     ]);
-    if(users.length === 0) 
-    {
-      return res.status(401).json({ success: false, message: "Invalid email or password." });
+
+    if (users.length === 0) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid email or password." });
     }
+
     const user = users[0];
-    if(!user.is_verified || !user.password_hash) 
-    {
+    if (!user.is_verified || !user.password_hash) {
       return res.status(403).json({
         success: false,
         message: "Account setup incomplete. Please sign up and verify OTP.",
       });
     }
+
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password." });
     }
+
     const payload = {
       id: user.id,
       email: user.email,
       full_name: user.full_name,
     };
+
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
@@ -236,15 +243,16 @@ export async function loginUser(req, res,next) {
       "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
       [user.id, hashedRefreshToken, refreshExpiry]
     );
+
     res.cookie(
       "accessToken",
       accessToken,
-      getCookieOptions(24 * 60 * 60 * 1000)
+      getCookieOptions(req, 24 * 60 * 60 * 1000)
     );
     res.cookie(
       "refreshToken",
       refreshToken,
-      getCookieOptions(7 * 24 * 60 * 60 * 1000)
+      getCookieOptions(req, 7 * 24 * 60 * 60 * 1000)
     );
 
     return res.status(200).json({
@@ -256,12 +264,11 @@ export async function loginUser(req, res,next) {
         email: user.email,
       },
     });
-  }  catch (error) {
-    console.error("Login Error:", error);
-    if (typeof next === "function") return next(error);
-    return res.status(500).json({ success: false, message: error.message || "Internal server error" });
+  } catch (error) {
+    return next(error);
   }
 }
+
 export async function refreshAccessToken(req, res) {
   try {
     const incomingRefreshToken = req.cookies?.refreshToken;
@@ -288,6 +295,7 @@ export async function refreshAccessToken(req, res) {
         message: "Session expired. Please login again.",
       });
     }
+
     const decoded = jwt.verify(
       incomingRefreshToken,
       process.env.JWT_REFRESH_SECRET
@@ -301,7 +309,7 @@ export async function refreshAccessToken(req, res) {
     res.cookie(
       "accessToken",
       newAccessToken,
-      getCookieOptions(24 * 60 * 60 * 1000)
+      getCookieOptions(req, 24 * 60 * 60 * 1000)
     );
 
     return res
@@ -314,6 +322,7 @@ export async function refreshAccessToken(req, res) {
     });
   }
 }
+
 export async function getCurrentUser(req, res) {
   try {
     const [rows] = await pool.query(
@@ -333,6 +342,7 @@ export async function getCurrentUser(req, res) {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 }
+
 export async function logoutUser(req, res) {
   try {
     const incomingRefreshToken = req.cookies?.refreshToken;
