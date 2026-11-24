@@ -1,3 +1,6 @@
+import pool from "../config/db.js";
+import { GoogleGenAI } from "@google/genai";
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 export async function suggestCategory(req, res, next) {
   try {
     const { description } = req.body;

@@ -41,3 +41,17 @@
 [2026-11-25 02:53:14] [ERROR]: ReferenceError: next is not defined
     at suggestCategory (file:///D:/expense-tracker/Backend/src/controllers/aiController.js:85:6)
     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[2026-11-25 02:59:34] [ERROR]: ReferenceError: pool is not defined
+    at getSpendingInsights (file:///D:/expense-tracker/Backend/src/controllers/aiController.js:59:24)
+    at Layer.handle [as handle_request] (D:\expense-tracker\Backend\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\expense-tracker\Backend\node_modules\express\lib\router\route.js:149:13)
+    at verifyAccessToken (file:///D:/expense-tracker/Backend/src/middleware/authMiddleware.js:12:5)
+    at Layer.handle [as handle_request] (D:\expense-tracker\Backend\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\expense-tracker\Backend\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\expense-tracker\Backend\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\expense-tracker\Backend\node_modules\express\lib\router\layer.js:95:5)
+    at D:\expense-tracker\Backend\node_modules\express\lib\router\index.js:284:15
+    at router.process_params (D:\expense-tracker\Backend\node_modules\express\lib\router\index.js:346:12) | Meta: {"method":"GET","url":"/ai/insights","ip":"::1","userId":1}
+[2026-11-25 03:01:51] [ERROR]: ReferenceError: ai is not defined
+    at getSpendingInsights (file:///D:/expense-tracker/Backend/src/controllers/aiController.js:80:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) | Meta: {"method":"GET","url":"/ai/insights","ip":"::1","userId":1}
